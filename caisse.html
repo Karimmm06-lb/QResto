@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QResto — Caisse</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Q<span>Resto</span></div>
+    <div class="badge">🧾 Caisse</div>
+    <div class="spacer"></div>
+    <span id="live" class="chip prete">● en direct</span>
+    <button class="btn sm ghost" id="soundBtn">🔔 Son : ON</button>
+  </header>
+
+  <main class="wrap">
+    <div class="stats" style="margin-top:18px">
+      <div class="card stat"><div class="v" id="kNew">0</div><div class="k">Nouvelles</div></div>
+      <div class="card stat"><div class="v" id="kKitchen">0</div><div class="k">En cuisine</div></div>
+      <div class="card stat"><div class="v" id="kReady">0</div><div class="k">Prêtes</div></div>
+      <div class="card stat"><div class="v" id="kCash">0 DA</div><div class="k">À encaisser</div></div>
+    </div>
+
+    <h2>Commandes en cours</h2>
+    <div class="orders" id="orders"></div>
+
+    <h2>Encaissées aujourd'hui</h2>
+    <div class="orders" id="done"></div>
+  </main>
+
+  <div id="ticket"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/caisse.js"></script>
+</body>
+</html>

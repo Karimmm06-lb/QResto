@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>QResto — Commander</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Q<span>Resto</span></div>
+    <div class="badge" id="tableBadge">Table —</div>
+    <div class="spacer"></div>
+    <div class="langs">
+      <button data-lang="fr">FR</button>
+      <button data-lang="ar">ع</button>
+      <button data-lang="en">EN</button>
+    </div>
+  </header>
+
+  <main class="wrap narrow" id="app">
+    <div id="menuView">
+      <div class="cats" id="cats"></div>
+      <div class="grid" id="dishes"></div>
+      <div class="card" id="noteBox" style="margin-top:12px;display:none">
+        <textarea id="note" rows="2"></textarea>
+      </div>
+    </div>
+
+    <div id="confirmView" style="display:none"></div>
+  </main>
+
+  <div class="cartbar" id="cartbar" style="display:none">
+    <div class="inner">
+      <div>
+        <div style="font-size:13px;color:var(--muted)" id="cartCount"></div>
+        <div style="font-weight:800;font-size:18px" id="cartTotal"></div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" id="sendBtn"></button>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/client.js"></script>
+</body>
+</html>

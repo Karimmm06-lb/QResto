@@ -8,8 +8,8 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">Q<span>Resto</span></div>
-    <div class="badge" id="tableBadge">Table —</div>
+    <div class="brand" id="restoNom">Q<span>Resto</span></div>
+    <div class="badge" id="tableBadge">…</div>
     <div class="spacer"></div>
     <div class="langs">
       <button data-lang="fr">FR</button>
@@ -18,15 +18,17 @@
     </div>
   </header>
 
-  <main class="wrap narrow" id="app">
+  <div id="erreur" class="alerte"></div>
+
+  <main class="wrap narrow">
     <div id="menuView">
       <div class="cats" id="cats"></div>
       <div class="grid" id="dishes"></div>
       <div class="card" id="noteBox" style="margin-top:12px;display:none">
+        <input id="nom" maxlength="30" style="margin-bottom:8px">
         <textarea id="note" rows="2"></textarea>
       </div>
     </div>
-
     <div id="confirmView" style="display:none"></div>
   </main>
 
@@ -41,6 +43,7 @@
     </div>
   </div>
 
+  <script src="js/config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/store.js"></script>
   <script src="js/client.js"></script>

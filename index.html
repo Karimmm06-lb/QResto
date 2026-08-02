@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>QResto — Prototype</title>
+  <title>QResto</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -11,53 +11,43 @@
     <div class="brand">Q<span>Resto</span></div>
     <div class="spacer"></div>
     <a class="btn sm ghost" href="caisse.html">🧾 Caisse</a>
-    <a class="btn sm ghost" href="admin.html">📊 Stats</a>
+    <a class="btn sm ghost" href="admin.html">📊 Gérant</a>
   </header>
 
   <main class="wrap">
-    <h1>QResto — commande par QR code</h1>
-    <p class="sub">Le client scanne le QR de sa table, commande sur son téléphone, et paie en caisse.
-       Le caissier reçoit la commande en direct et imprime le ticket pour le cuistot.</p>
+    <h1>Commande par QR code</h1>
+    <p class="sub">Le client scanne le QR de sa table, commande sur son téléphone, et paie en
+      caisse. Le caissier reçoit la commande en direct et imprime le ticket pour le cuistot.</p>
 
     <div class="grid cols">
       <div class="card">
-        <h2 style="margin-top:0">📱 1. Le client</h2>
-        <p class="sub">Scanne le QR posé sur la table → menu, panier, envoi. Aucune appli à installer.</p>
-        <a class="btn wide" href="client.html?table=5" style="display:block;text-align:center;text-decoration:none">Ouvrir la table 5</a>
+        <h2 style="margin-top:0">📱 Le client</h2>
+        <p class="sub">Scanne le QR posé sur la table. Aucune application, aucun compte.</p>
       </div>
       <div class="card">
-        <h2 style="margin-top:0">🧾 2. La caisse</h2>
-        <p class="sub">La commande apparaît instantanément avec un bip. Le caissier imprime le ticket et le donne au cuistot.</p>
-        <a class="btn wide blue" href="caisse.html" style="display:block;text-align:center;text-decoration:none">Ouvrir l'écran caisse</a>
+        <h2 style="margin-top:0">🧾 La caisse</h2>
+        <p class="sub">Reçoit la commande en direct avec un bip, imprime le ticket cuisine,
+          encaisse la table.</p>
+        <a class="btn wide blue" href="caisse.html"
+           style="display:block;text-align:center;text-decoration:none">Ouvrir la caisse</a>
       </div>
       <div class="card">
-        <h2 style="margin-top:0">📊 3. Le patron</h2>
-        <p class="sub">Chiffre d'affaires, plats les plus vendus, heures de pointe.</p>
-        <a class="btn wide ghost" href="admin.html" style="display:block;text-align:center;text-decoration:none">Ouvrir les stats</a>
+        <h2 style="margin-top:0">📊 Le gérant</h2>
+        <p class="sub">Statistiques de vente, disponibilité des plats, QR codes des tables
+          à imprimer.</p>
+        <a class="btn wide ghost" href="admin.html"
+           style="display:block;text-align:center;text-decoration:none">Ouvrir l'espace gérant</a>
       </div>
     </div>
 
-    <h2>QR codes des tables</h2>
-    <p class="sub">À imprimer et poser sur chaque table. Ici les QR pointent vers ce prototype ;
-       en production ils pointeront vers <code>qresto.dz/&lt;resto&gt;/table/&lt;n&gt;</code>.</p>
-    <div class="grid cols" id="qrs"></div>
+    <h2>Comment tester</h2>
+    <div class="card">
+      <p class="sub" style="margin:0">
+        Connectez-vous à l'espace gérant pour afficher les QR codes des tables, puis scannez-en
+        un avec votre téléphone. Gardez la page caisse ouverte à côté : la commande y apparaît
+        en moins de trois secondes.
+      </p>
+    </div>
   </main>
-
-  <script src="js/data.js"></script>
-  <script>
-    const base = location.href.replace(/index\.html.*$/, '') + 'client.html?table=';
-    document.getElementById('qrs').innerHTML = Array.from({ length: RESTO.tables }, (_, i) => {
-      const n = i + 1;
-      const url = base + n;
-      const src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=' + encodeURIComponent(url);
-      return `<div class="card" style="text-align:center">
-        <div style="font-weight:800;font-size:18px;margin-bottom:8px">Table ${n}</div>
-        <img src="${src}" alt="QR table ${n}" width="180" height="180"
-             style="background:#fff;border-radius:10px;padding:6px"
-             onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'sub',textContent:'QR indisponible hors ligne'}))">
-        <div style="margin-top:10px"><a href="client.html?table=${n}">Ouvrir la table ${n}</a></div>
-      </div>`;
-    }).join('');
-  </script>
 </body>
 </html>

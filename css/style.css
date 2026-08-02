@@ -109,6 +109,38 @@ h2 { font-size: 17px; margin: 24px 0 10px; }
 .qty button.plus { background: var(--accent); border-color: var(--accent); color: #12141a; font-weight: 800; }
 .qty .n { min-width: 20px; text-align: center; font-weight: 700; }
 
+/* ---------- déclinaisons (D5) ---------- */
+.dish { display: block; }
+.dish .info { margin-bottom: 10px; }
+.dish.epuise { opacity: 0.5; }
+.variantes { display: grid; gap: 6px; }
+.vrow { display: flex; align-items: center; gap: 10px; }
+.vrow .vlbl { flex: 0 0 90px; color: var(--muted); font-size: 14px; }
+.vrow .vprix { flex: 1; color: var(--accent); font-weight: 800; }
+[dir="rtl"] .dish { text-align: right; }
+
+/* ---------- bandeau d'erreur ---------- */
+.alerte {
+  display: none; margin: 0; padding: 12px 16px;
+  background: #4a1d1d; color: #ffd7d7; font-size: 14px; text-align: center;
+}
+
+/* ---------- connexion caisse ---------- */
+.login { max-width: 360px; margin: 80px auto; }
+.login input { margin-bottom: 10px; }
+
+/* ---------- table en caisse ---------- */
+.tablecard { border-left: 4px solid var(--accent); }
+.tablecard .thead {
+  display: flex; align-items: baseline; gap: 10px;
+  padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--border);
+}
+.tablecard .tnum { font-size: 24px; font-weight: 800; }
+.cmd { border-top: 1px dashed var(--border); padding-top: 10px; margin-top: 10px; }
+.cmd:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+.cmd .chead { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.cmd .conv { font-weight: 700; }
+
 /* ---------- panier flottant ---------- */
 .cartbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
@@ -155,8 +187,16 @@ textarea, input, select {
 .order .head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
 .order .tbl { font-size: 22px; font-weight: 800; }
 .order .num { color: var(--muted); font-size: 13px; }
-.order ul { list-style: none; margin: 0 0 12px; padding: 0; }
-.order li { display: flex; justify-content: space-between; padding: 3px 0; font-size: 14px; }
+.order ul, .cmd ul { list-style: none; margin: 0 0 12px; padding: 0; }
+.order li, .cmd li {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 3px 0; font-size: 14px;
+}
+.cmd .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.cmd .note {
+  background: var(--surface-2); border-radius: 10px; padding: 8px 10px;
+  font-size: 13px; color: var(--muted); margin-bottom: 10px;
+}
 .order .note { background: var(--surface-2); border-radius: 10px; padding: 8px 10px; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
 .order .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .order .tot { border-top: 1px dashed var(--border); padding-top: 8px; font-weight: 800; display: flex; justify-content: space-between; }

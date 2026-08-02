@@ -3,36 +3,54 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>QResto — Statistiques</title>
+  <title>QResto — Gérant</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <header class="topbar">
+  <header class="topbar" id="barre" style="display:none">
     <div class="brand">Q<span>Resto</span></div>
-    <div class="badge">📊 Statistiques</div>
+    <div class="badge">📊 Gérant</div>
     <div class="spacer"></div>
-    <button class="btn sm ghost" id="seedBtn">🎲 Données de démo</button>
-    <button class="btn sm ghost" id="clearBtn">🗑️ Tout effacer</button>
+    <a class="btn sm ghost" href="caisse.html">🧾 Caisse</a>
+    <button class="btn sm ghost" id="logoutBtn">Déconnexion</button>
   </header>
 
-  <main class="wrap">
+  <div id="erreur" class="alerte"></div>
+
+  <main class="wrap narrow login" id="loginView">
+    <div class="card">
+      <h1 style="margin-top:0">Espace gérant</h1>
+      <p class="sub">Connexion requise.</p>
+      <input id="email" type="email" placeholder="Adresse e-mail" autocomplete="username">
+      <input id="mdp" type="password" placeholder="Mot de passe" autocomplete="current-password">
+      <button class="btn wide" id="loginBtn">Se connecter</button>
+    </div>
+  </main>
+
+  <main class="wrap" id="appView" style="display:none">
     <div class="stats" style="margin-top:18px">
-      <div class="card stat"><div class="v" id="ca">0 DA</div><div class="k">Chiffre d'affaires</div></div>
-      <div class="card stat"><div class="v" id="nb">0</div><div class="k">Commandes</div></div>
-      <div class="card stat"><div class="v" id="moy">0 DA</div><div class="k">Panier moyen</div></div>
-      <div class="card stat"><div class="v" id="attente">0 min</div><div class="k">Attente moyenne estimée</div></div>
+      <div class="card stat"><div class="v" id="ca">0 DA</div><div class="k">Encaissé</div></div>
+      <div class="card stat"><div class="v" id="nb">0</div><div class="k">Tables servies</div></div>
+      <div class="card stat"><div class="v" id="moy">0 DA</div><div class="k">Addition moyenne</div></div>
+      <div class="card stat"><div class="v" id="perte">0 DA</div><div class="k">Pertes (annulations)</div></div>
     </div>
 
     <h2>Plats les plus vendus</h2>
     <div class="card" id="top"></div>
 
-    <h2>Commandes par heure</h2>
+    <h2>Tables servies par heure</h2>
     <div class="card" id="hours"></div>
 
-    <h2>Chiffre d'affaires par table</h2>
-    <div class="card" id="tables"></div>
+    <h2>Disponibilité des plats</h2>
+    <p class="sub" style="margin-top:-6px">Un plat basculé ici disparaît immédiatement des téléphones.</p>
+    <div class="card" id="dispo"></div>
+
+    <h2>QR codes des tables</h2>
+    <p class="sub" style="margin-top:-6px">À imprimer et poser sur chaque table.</p>
+    <div class="grid cols" id="qrs"></div>
   </main>
 
+  <script src="js/config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/store.js"></script>
   <script src="js/admin.js"></script>

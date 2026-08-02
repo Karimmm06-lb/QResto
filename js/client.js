@@ -1,141 +1,213 @@
-/* QResto — page client (scan du QR de la table) */
+/* QResto — page client (accès par scan du QR de la table) */
 
-const params = new URLSearchParams(location.search);
-const TABLE = parseInt(params.get('table'), 10) || 1;
+const qrToken = new URLSearchParams(location.search).get('t');
 
 let lang = localStorage.getItem('qresto.lang') || 'fr';
+let ctx = null;          // restaurant, numéro de table
+let menu = null;         // catégories + plats + déclinaisons
 let cat = 'all';
-let cart = {};
-let myOrderId = null;
+let panier = {};         // variante_id -> quantité
+let suivi = null;        // fonction d'arrêt de l'interrogation (D22)
 
-const $ = sel => document.querySelector(sel);
+const $ = s => document.querySelector(s);
 const t = k => I18N[lang][k];
-const price = n => `${n.toLocaleString(lang === 'ar' ? 'ar-DZ' : 'fr-DZ')} ${t('da')}`;
+const prix = n => fmt.prix(n, lang);
+
+// D3b : le prénom est mémorisé après la première saisie.
+const nomMemorise = () => localStorage.getItem('qresto.nom') || '';
 
 function setLang(next) {
   lang = next;
   localStorage.setItem('qresto.lang', next);
   document.documentElement.lang = next;
   document.documentElement.dir = I18N[next].dir;
-  document.querySelectorAll('.langs button').forEach(b => b.classList.toggle('on', b.dataset.lang === next));
-  render();
+  document.querySelectorAll('.langs button').forEach(b =>
+    b.classList.toggle('on', b.dataset.lang === next));
+  rendre();
 }
 
-function cartItems() {
-  return Object.entries(cart)
-    .filter(([, qty]) => qty > 0)
-    .map(([id, qty]) => {
-      const dish = MENU.find(d => d.id === id);
-      return { id, qty, price: dish.price, emoji: dish.emoji, name: dish.name };
-    });
+const nomPlat = p => p[`nom_${lang}`] || p.nom_fr;
+const descPlat = p => p[`desc_${lang}`] || p.desc_fr || '';
+const nomVariante = v => v[`libelle_${lang}`] || v.libelle_fr;
+const estStandard = v => v.libelle_fr === 'Standard';
+
+function articles() {
+  const out = [];
+  for (const [vid, q] of Object.entries(panier)) {
+    if (!q) continue;
+    for (const p of menu.plats) {
+      const v = p.variantes_plat.find(x => x.id === vid);
+      if (v) out.push({ variante: v, plat: p, quantite: q });
+    }
+  }
+  return out;
 }
 
-const cartTotal = () => cartItems().reduce((s, i) => s + i.price * i.qty, 0);
-const cartCount = () => cartItems().reduce((s, i) => s + i.qty, 0);
+const total = () => articles().reduce((s, a) => s + a.variante.prix * a.quantite, 0);
+const nbArticles = () => articles().reduce((s, a) => s + a.quantite, 0);
 
-function renderCats() {
-  $('#cats').innerHTML = CATEGORIES.map(c =>
-    `<button data-cat="${c.id}" class="${c.id === cat ? 'on' : ''}">${c.emoji} ${c.label[lang]}</button>`
+function rendreCategories() {
+  const toutes = [{ id: 'all', nom_fr: 'Tout', nom_ar: 'الكل', nom_en: 'All' }, ...menu.categories];
+  $('#cats').innerHTML = toutes.map(c =>
+    `<button data-cat="${c.id}" class="${c.id === cat ? 'on' : ''}">${c[`nom_${lang}`] || c.nom_fr}</button>`
   ).join('');
 }
 
-function renderDishes() {
-  const list = cat === 'all' ? MENU : MENU.filter(d => d.cat === cat);
-  $('#dishes').innerHTML = list.map(d => {
-    const qty = cart[d.id] || 0;
-    return `
-      <div class="card dish">
-        <div class="pic">${d.emoji}</div>
+function rendrePlats() {
+  const liste = cat === 'all' ? menu.plats : menu.plats.filter(p => p.categorie_id === cat);
+
+  $('#dishes').innerHTML = liste.map(p => {
+    // D5 : une seule déclinaison « Standard » est masquée, l'interface
+    // ressemble alors à un plat à prix unique.
+    const simple = p.variantes_plat.length === 1 && estStandard(p.variantes_plat[0]);
+
+    const lignes = p.variantes_plat.map(v => {
+      const q = panier[v.id] || 0;
+      const etiquette = simple ? '' : `<span class="vlbl">${nomVariante(v)}</span>`;
+      return `<div class="vrow">
+          ${etiquette}
+          <span class="vprix">${prix(v.prix)}</span>
+          <span class="qty">
+            ${q > 0 ? `<button data-moins="${v.id}">−</button><span class="n">${q}</span>` : ''}
+            <button class="plus" data-plus="${v.id}" ${p.disponible ? '' : 'disabled'}>+</button>
+          </span>
+        </div>`;
+    }).join('');
+
+    return `<div class="card dish ${p.disponible ? '' : 'epuise'}">
         <div class="info">
-          <div class="name">${d.name[lang]}</div>
-          <div class="desc">${d.desc[lang]}</div>
-          <div class="price">${price(d.price)}</div>
+          <div class="name">${nomPlat(p)} ${p.disponible ? '' : `<span class="chip payee">${t('epuise')}</span>`}</div>
+          <div class="desc">${descPlat(p)}</div>
         </div>
-        <div class="qty">
-          ${qty > 0 ? `<button data-minus="${d.id}">−</button><span class="n">${qty}</span>` : ''}
-          <button class="plus" data-plus="${d.id}">+</button>
-        </div>
+        <div class="variantes">${lignes}</div>
       </div>`;
   }).join('');
 }
 
-function renderCartbar() {
-  const n = cartCount();
+function rendreBarre() {
+  const n = nbArticles();
   $('#cartbar').style.display = n ? 'block' : 'none';
   $('#noteBox').style.display = n ? 'block' : 'none';
-  $('#note').placeholder = t('note');
   $('#cartCount').textContent = `${n} ${t('items')}`;
-  $('#cartTotal').textContent = price(cartTotal());
+  $('#cartTotal').textContent = prix(total());
   $('#sendBtn').textContent = t('send');
+  $('#note').placeholder = t('note');
+  $('#nom').placeholder = t('votreNom');
 }
 
-function render() {
-  $('#tableBadge').textContent = `${t('table')} ${TABLE}`;
-  if (myOrderId) { renderConfirm(); return; }
-  $('#menuView').style.display = '';
-  $('#confirmView').style.display = 'none';
-  renderCats();
-  renderDishes();
-  renderCartbar();
+function rendre() {
+  if (!ctx || !menu) return;
+  $('#tableBadge').textContent = `${t('table')} ${ctx.table_numero}`;
+  rendreCategories();
+  rendrePlats();
+  rendreBarre();
 }
 
-function renderConfirm() {
-  const order = Store.get(myOrderId);
-  if (!order) { myOrderId = null; render(); return; }
-
+function afficherConfirmation(cmd) {
   $('#menuView').style.display = 'none';
   $('#cartbar').style.display = 'none';
-  const view = $('#confirmView');
-  view.style.display = '';
-  view.innerHTML = `
+  const vue = $('#confirmView');
+  vue.style.display = '';
+
+  const eta = cmd.eta_min
+    ? `<div class="badge" style="font-size:15px;padding:10px 16px">
+         ⏱️ ${t('eta')} ${cmd.eta_min}–${cmd.eta_max} ${t('min')}</div>` : '';
+
+  vue.innerHTML = `
     <div class="card" style="text-align:center;margin-top:24px">
       <div style="font-size:52px">✅</div>
       <h1 style="margin-top:8px">${t('sent')}</h1>
-      <p class="sub">${t('orderNo')} ${order.number} — ${t('table')} ${order.table}</p>
-      <div class="badge" style="font-size:15px;padding:10px 16px">
-        ⏱️ ${t('eta')} ${order.eta} ${t('min')}
-      </div>
+      <p class="sub">${t('orderNo')} ${cmd.numero} — ${t('table')} ${ctx.table_numero}</p>
+      ${eta}
       <div style="margin:18px 0">
-        <div class="k" style="color:var(--muted);font-size:13px">${t('status')}</div>
-        <span class="chip ${order.status}">${t('st_' + order.status)}</span>
+        <div style="color:var(--muted);font-size:13px">${t('status')}</div>
+        <span class="chip nouvelle" id="statutChip">${t('st_nouvelle')}</span>
       </div>
-      <ul style="list-style:none;padding:0;text-align:start">
-        ${order.items.map(i => `<li style="display:flex;justify-content:space-between;padding:4px 0">
-          <span>${i.emoji} ${i.qty} × ${i.name[lang]}</span><span>${price(i.price * i.qty)}</span></li>`).join('')}
-      </ul>
-      <div style="border-top:1px dashed var(--border);padding-top:10px;display:flex;justify-content:space-between;font-weight:800">
-        <span>${t('total')}</span><span>${price(order.total)}</span>
+      <div style="border-top:1px dashed var(--border);padding-top:10px;
+                  display:flex;justify-content:space-between;font-weight:800">
+        <span>${t('total')}</span><span>${prix(cmd.total)}</span>
       </div>
       <p class="sub" style="margin-top:18px">💵 ${t('payInfo')}</p>
       <button class="btn ghost wide" id="againBtn">${t('newOrder')}</button>
     </div>`;
 
-  $('#againBtn').onclick = () => { myOrderId = null; cart = {}; render(); };
+  // D22 : interrogation toutes les 10 s, arrêt sur état terminal.
+  if (suivi) suivi();
+  suivi = Store.suivreCommande(cmd.secret, etat => {
+    const chip = $('#statutChip');
+    if (!chip) return;
+    chip.className = `chip ${etat.statut}`;
+    chip.textContent = t('st_' + etat.statut);
+  });
+
+  $('#againBtn').onclick = () => {
+    if (suivi) { suivi(); suivi = null; }
+    panier = {}; $('#note').value = '';
+    vue.style.display = 'none';
+    $('#menuView').style.display = '';
+    rendre();
+  };
+}
+
+function erreur(message) {
+  const b = $('#erreur');
+  b.textContent = message;
+  b.style.display = 'block';
+  setTimeout(() => { b.style.display = 'none'; }, 6000);
 }
 
 document.addEventListener('click', e => {
   const plus = e.target.closest('[data-plus]');
-  const minus = e.target.closest('[data-minus]');
-  const catBtn = e.target.closest('[data-cat]');
-  const langBtn = e.target.closest('[data-lang]');
+  const moins = e.target.closest('[data-moins]');
+  const c = e.target.closest('[data-cat]');
+  const l = e.target.closest('[data-lang]');
 
-  if (plus) { cart[plus.dataset.plus] = (cart[plus.dataset.plus] || 0) + 1; renderDishes(); renderCartbar(); }
-  if (minus) { cart[minus.dataset.minus] -= 1; renderDishes(); renderCartbar(); }
-  if (catBtn) { cat = catBtn.dataset.cat; renderCats(); renderDishes(); }
-  if (langBtn) setLang(langBtn.dataset.lang);
+  if (plus)  { panier[plus.dataset.plus] = (panier[plus.dataset.plus] || 0) + 1; rendrePlats(); rendreBarre(); }
+  if (moins) { panier[moins.dataset.moins] -= 1; rendrePlats(); rendreBarre(); }
+  if (c)     { cat = c.dataset.cat; rendreCategories(); rendrePlats(); }
+  if (l)     setLang(l.dataset.lang);
 });
 
-$('#sendBtn').onclick = () => {
-  const order = Store.add({
-    table: TABLE, items: cartItems(), total: cartTotal(), lang,
-    note: $('#note').value.trim(),
-  });
-  $('#note').value = '';
-  myOrderId = order.id;
-  render();
-};
+async function envoyer() {
+  const bouton = $('#sendBtn');
+  bouton.disabled = true;                       // évite le double envoi (D10 partiel)
+  try {
+    const nom = $('#nom').value.trim();
+    if (nom) localStorage.setItem('qresto.nom', nom);
 
-// La caisse met le statut à jour → l'écran du client suit en direct.
-Store.onChange(() => { if (myOrderId) renderConfirm(); });
+    const cmd = await Store.creerCommande({
+      qrToken,
+      lignes: articles().map(a => ({ variante_id: a.variante.id, quantite: a.quantite })),
+      nom,
+      note: $('#note').value.trim(),
+    });
+    afficherConfirmation(cmd);
+  } catch (e) {
+    erreur(Store.messageErreur(e));
+    // Un plat a pu passer en « épuisé » : on recharge le menu.
+    menu = await Store.menu(ctx.restaurant_id);
+    rendre();
+  } finally {
+    bouton.disabled = false;
+  }
+}
 
-setLang(lang);
+(async function demarrer() {
+  if (!qrToken) {
+    document.body.innerHTML =
+      '<div class="empty">QR code invalide.<br><small>Scannez le code posé sur votre table.</small></div>';
+    return;
+  }
+  try {
+    ctx = await Store.contexteTable(qrToken);
+    if (!ctx) throw new Error('Table inconnue');
+    menu = await Store.menu(ctx.restaurant_id);
+    $('#restoNom').textContent = ctx.restaurant;
+    $('#nom').value = nomMemorise();
+    $('#sendBtn').onclick = envoyer;
+    setLang(lang);
+  } catch (e) {
+    document.body.innerHTML =
+      `<div class="empty">${Store.messageErreur(e)}</div>`;
+  }
+})();

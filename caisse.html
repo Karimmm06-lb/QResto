@@ -7,31 +7,47 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <header class="topbar">
+  <header class="topbar" id="barre" style="display:none">
     <div class="brand">Q<span>Resto</span></div>
     <div class="badge">🧾 Caisse</div>
     <div class="spacer"></div>
     <span id="live" class="chip prete">● en direct</span>
-    <button class="btn sm ghost" id="soundBtn">🔔 Son : ON</button>
+    <button class="btn sm ghost" id="soundBtn">🔔 Son</button>
+    <button class="btn sm ghost" id="clotureBtn">📅 Clôturer</button>
+    <button class="btn sm ghost" id="logoutBtn">Déconnexion</button>
   </header>
 
-  <main class="wrap">
+  <div id="erreur" class="alerte"></div>
+
+  <!-- D4/D9 : le restaurant vient du jeton, le poste doit donc être authentifié -->
+  <main class="wrap narrow login" id="loginView">
+    <div class="card">
+      <h1 style="margin-top:0">Poste caisse</h1>
+      <p class="sub">Connexion requise : le restaurant est déterminé par le compte.</p>
+      <input id="email" type="email" placeholder="Adresse e-mail" autocomplete="username">
+      <input id="mdp" type="password" placeholder="Mot de passe" autocomplete="current-password">
+      <button class="btn wide" id="loginBtn">Se connecter</button>
+    </div>
+  </main>
+
+  <main class="wrap" id="appView" style="display:none">
     <div class="stats" style="margin-top:18px">
-      <div class="card stat"><div class="v" id="kNew">0</div><div class="k">Nouvelles</div></div>
+      <div class="card stat"><div class="v" id="kNew">0</div><div class="k">À imprimer</div></div>
       <div class="card stat"><div class="v" id="kKitchen">0</div><div class="k">En cuisine</div></div>
       <div class="card stat"><div class="v" id="kReady">0</div><div class="k">Prêtes</div></div>
       <div class="card stat"><div class="v" id="kCash">0 DA</div><div class="k">À encaisser</div></div>
     </div>
 
-    <h2>Commandes en cours</h2>
-    <div class="orders" id="orders"></div>
-
-    <h2>Encaissées aujourd'hui</h2>
-    <div class="orders" id="done"></div>
+    <h2>Tables en cours</h2>
+    <p class="sub" style="margin-top:-6px">
+      Une table affichée ici sans clients à cet emplacement signale une commande frauduleuse : annulez-la.
+    </p>
+    <div class="orders" id="tables"></div>
   </main>
 
   <div id="ticket"></div>
 
+  <script src="js/config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/store.js"></script>
   <script src="js/caisse.js"></script>

@@ -190,11 +190,25 @@ thermique est vue comme une imprimante ordinaire, ce qui évite tout pilote spé
 
 | ID | Sujet | Impact |
 |---|---|---|
-| **D22** | Suivi temps réel côté client anonyme | Bloque la réécriture de la couche d'accès aux données |
 | D10 | Idempotence des envois sur réseau instable | Un double envoi crée aujourd'hui deux commandes |
 | D12 | Coupure internet pendant le service | Aucun mode dégradé prévu |
 | D13 | Panne d'imprimante | Aucun repli prévu |
 | D15 | Versionnement du menu | Un menu modifié pendant qu'un panier est ouvert |
 | D16 | Rétention et purge du prénom | Obligation issue de l'analyse (§2.7) |
 
-Seule **D22** bloque la phase 4.
+Aucune de ces décisions ne bloque la phase 4 : elles portent sur des modes dégradés et des
+optimisations, pas sur la structure. Elles doivent être tranchées avant la mise en service
+d'un restaurant pilote.
+
+## 3.9 Asymétrie de diffusion (D22)
+
+Le poste caisse et le téléphone du client n'utilisent **pas** le même mécanisme :
+
+| Destinataire | Mécanisme | Exigence de latence |
+|---|---|---|
+| Poste caisse | Abonnement temps réel, notification poussée | Moins de 3 s (BNF1) |
+| Téléphone du client | Interrogation de `suivre_commande` toutes les 10 s | Aucune exigence formelle |
+
+Cette asymétrie est délibérée. Le client anonyme n'a aucun droit de lecture sur
+`commandes` ; lui ouvrir un accès partiel permettrait à un tiers de compter les commandes
+du restaurant. L'interrogation cesse dès que la commande atteint un état terminal.

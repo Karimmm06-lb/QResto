@@ -164,22 +164,26 @@ ce sont des anomalies, pas des ventes.
 
 ---
 
-## Décisions en attente
+### D22 — Suivi de commande côté client par interrogation périodique
+**Type :** architecture · **Statut :** arrêtée
 
-### D22 — Suivi de commande côté client en temps réel
-**Type :** architecture · **Statut :** ⏳ à trancher
+Le téléphone du client appelle `suivre_commande(secret)` toutes les 10 secondes.
+L'interrogation cesse dès que la commande atteint un état terminal (`servie` ou `annulee`).
 
-Le client anonyme n'a aucun droit de lecture sur les commandes ; il ne peut donc pas
-s'abonner au flux temps réel pour suivre son statut.
+*Pourquoi :* le client anonyme n'a aucun droit de lecture sur `commandes` et ne peut donc
+pas s'abonner au flux temps réel. Le client regarde son téléphone en attendant son plat :
+10 secondes de latence sont imperceptibles.
 
-| Option | Description | Conséquence |
-|---|---|---|
-| A | Interrogation périodique de `suivre_commande` toutes les 10 s | Simple et étanche ; latence de 10 s |
-| B | Lecture partielle ouverte au rôle anonyme | Vrai temps réel ; un concurrent peut compter les commandes |
-| C | Canal de diffusion dédié par commande | Temps réel et étanche ; plomberie supplémentaire |
+*Asymétrie assumée :* le poste caisse est en temps réel poussé, le client en interrogation.
+Les deux besoins n'ont pas la même exigence de latence — 3 secondes en caisse (BNF1),
+aucune exigence côté client.
 
-*Recommandation :* A. Le client regarde son téléphone en attendant ; 10 secondes de
-latence sont invisibles. B expose des données commerciales du restaurateur sans contrepartie.
+*Alternatives écartées :* ouvrir `commandes` en lecture partielle au rôle anonyme
+permettrait à un concurrent de compter les commandes du restaurant ; un canal de diffusion
+dédié par commande serait étanche mais ajouterait de la plomberie des deux côtés pour un
+gain imperceptible.
+
+*À revoir si :* le nombre de restaurants rend le volume d'interrogations coûteux.
 
 ---
 

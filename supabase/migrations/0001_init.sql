@@ -191,14 +191,16 @@ create index on journal_audit (restaurant_id, cree_le desc);
 -- D4 : le restaurant du poste connecté vient du JWT.
 -- IMPÉRATIF : app_metadata, jamais user_metadata — cette dernière est modifiable
 -- par l'utilisateur lui-même, ce qui lui permettrait de lire un autre restaurant.
+-- search_path figé : sans lui, la résolution des noms dépend du rôle appelant
+-- et peut être détournée.
 create or replace function mon_restaurant()
-returns uuid language sql stable as $$
+returns uuid language sql stable security invoker set search_path = public as $$
   select nullif(auth.jwt() -> 'app_metadata' ->> 'restaurant_id', '')::uuid;
 $$;
 
 -- D21 : journée d'exploitation, décalée de fin_journee.
 create or replace function journee_exploitation(p_restaurant_id uuid, p_ts timestamptz default now())
-returns date language sql stable as $$
+returns date language sql stable security invoker set search_path = public as $$
   select ((p_ts at time zone r.fuseau) - (r.fin_journee - time '00:00'))::date
   from restaurants r
   where r.id = p_restaurant_id;
@@ -292,6 +294,19 @@ begin
     raise exception 'Commande vide' using errcode = '22023';
   end if;
 
+  -- Validation de forme AVANT la validation métier. Sans elle, une quantité
+  -- aberrante était filtrée par la jointure et ressortait en « plat
+  -- indisponible » — un message faux qui envoie l'exploitation sur une
+  -- fausse piste.
+  if exists (
+    select 1 from jsonb_array_elements(p_lignes) l
+    where (l->>'variante_id') is null
+       or (l->>'quantite') !~ '^[0-9]+$'
+       or (l->>'quantite')::int not between 1 and 50
+  ) then
+    raise exception 'Quantité invalide' using errcode = '22023';
+  end if;
+
   select * into v_table from tables_resto where qr_token = p_qr_token and active;
   if not found then
     raise exception 'Table inconnue' using errcode = 'P0002';
@@ -338,8 +353,7 @@ begin
   join plats p          on p.id = v.plat_id
   where p.restaurant_id = v_resto.id
     and p.disponible                       -- D6 : un plat épuisé est rejeté ici
-    and not p.archive
-    and (l->>'quantite')::int between 1 and 50;
+    and not p.archive;
 
   -- Si une ligne a été filtrée, la commande ne correspond pas à ce que le client
   -- a vu à l'écran : on refuse tout plutôt que de servir une commande partielle.
@@ -522,9 +536,14 @@ end $$;
 -- Fige le chiffre d'affaires et ferme ce qui traîne.
 create or replace function cloturer_journee(p_restaurant_id uuid)
 returns jsonb language plpgsql security definer set search_path = public as $$
-declare v_journee date; v_ca numeric(10,2); v_orphelines int;
+declare v_journee date; v_ca numeric(10,2); v_orphelines int; v_moi uuid;
 begin
-  if p_restaurant_id <> mon_restaurant() then
+  -- Le test du NULL est indispensable : pour un appelant anonyme,
+  -- mon_restaurant() vaut NULL, « p_restaurant_id <> NULL » vaut NULL, et
+  -- « if NULL then » est FAUX. Le garde-fou ne se déclenchait pas et
+  -- n'importe qui pouvait clôturer la journée de n'importe quel restaurant.
+  v_moi := mon_restaurant();
+  if v_moi is null or p_restaurant_id is distinct from v_moi then
     raise exception 'Interdit' using errcode = '42501';
   end if;
 
@@ -558,8 +577,11 @@ select cron.schedule('qresto-expiration', '*/30 * * * *',
 -- 8. Droits d'exécution
 -- =============================================================================
 
-revoke execute on all functions in schema public from public;
+-- Le rôle PUBLIC englobe anon et authenticated : on retire tout, puis on
+-- n'accorde que le strict nécessaire, rôle par rôle.
+revoke execute on all functions in schema public from public, anon, authenticated;
 
+-- Seules ces deux procédures sont accessibles sans authentification.
 grant execute on function creer_commande(uuid, jsonb, text, text) to anon, authenticated;
 grant execute on function suivre_commande(uuid)                   to anon, authenticated;
 
@@ -568,6 +590,10 @@ grant execute on function changer_statut(uuid, text)    to authenticated;
 grant execute on function annuler_commande(uuid, text)  to authenticated;
 grant execute on function encaisser_session(uuid)       to authenticated;
 grant execute on function cloturer_journee(uuid)        to authenticated;
+
+-- expirer_sessions_inactives n'est accordée à personne : c'est une tâche de
+-- maintenance globale, sans cloisonnement par restaurant. Elle est appelée
+-- uniquement par l'ordonnanceur, qui s'exécute en tant que propriétaire.
 
 -- =============================================================================
 -- 9. Temps réel

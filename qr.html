@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QResto — QR codes à imprimer</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar" id="barre" style="display:none">
+    <div class="brand">Q<span>Resto</span></div>
+    <div class="badge">🖨️ QR codes</div>
+    <div class="spacer"></div>
+    <a class="btn sm ghost" href="admin.html">📊 Gérant</a>
+    <button class="btn sm" id="printBtn">Imprimer</button>
+  </header>
+
+  <div id="erreur" class="alerte"></div>
+
+  <main class="wrap narrow login" id="loginView">
+    <div class="card">
+      <h1 style="margin-top:0">QR codes des tables</h1>
+      <p class="sub">Connexion requise.</p>
+      <input id="email" type="email" placeholder="Adresse e-mail" autocomplete="username">
+      <input id="mdp" type="password" placeholder="Mot de passe" autocomplete="current-password">
+      <button class="btn wide" id="loginBtn">Se connecter</button>
+    </div>
+  </main>
+
+  <main class="wrap" id="appView" style="display:none">
+    <p class="sub" id="consigne"></p>
+    <div class="feuille" id="feuille"></div>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/qr.js"></script>
+</body>
+</html>

@@ -228,22 +228,51 @@ textarea, input, select {
 .bar .lbl { flex: 0 0 150px; }
 .bar .n { flex: 0 0 70px; color: var(--muted); font-size: 13px; }
 
+/* ---------- planche de QR codes ---------- */
+.feuille { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.chevalet {
+  border: 1px dashed var(--border); border-radius: 12px;
+  padding: 16px 12px; text-align: center; background: var(--surface);
+}
+.chev-resto { font-weight: 800; font-size: 15px; }
+.chev-table { font-size: 26px; font-weight: 800; color: var(--accent); margin-bottom: 10px; }
+.chev-qr { background: #fff; padding: 8px; border-radius: 8px; }
+.chev-consigne { font-size: 13px; margin-top: 6px; }
+.chev-consigne.ar { direction: rtl; }
+.chev-pied { font-size: 11px; color: var(--muted); margin-top: 10px; }
+
+@media print {
+  @page { margin: 10mm; }
+  body { background: #fff; color: #000; }
+  .topbar, #erreur, #consigne, #loginView { display: none !important; }
+  .wrap { padding: 0; max-width: none; }
+  .feuille { grid-template-columns: 1fr 1fr; gap: 6mm; }
+  .chevalet {
+    border: 1px dashed #999; background: #fff; color: #000;
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  .chev-table { color: #000; }
+  .chev-pied { color: #444; }
+}
+
 /* ---------- ticket imprimable ---------- */
 #ticket { display: none; }
 
+/* Cloisonné au poste caisse : sans cela, « body * { visibility: hidden } »
+   masquerait aussi la planche de QR codes, qui a son propre rendu papier. */
 @media print {
-  body * { visibility: hidden; }
-  #ticket, #ticket * { visibility: visible; }
-  #ticket {
+  body.caisse * { visibility: hidden; }
+  body.caisse #ticket, body.caisse #ticket * { visibility: visible; }
+  body.caisse #ticket {
     display: block; position: absolute; left: 0; top: 0; width: 72mm;
     color: #000; background: #fff; font-family: "Courier New", monospace; font-size: 12px;
   }
-  #ticket .c { text-align: center; }
-  #ticket .b { font-weight: bold; }
-  #ticket .big { font-size: 20px; font-weight: bold; }
-  #ticket hr { border: none; border-top: 1px dashed #000; }
-  #ticket table { width: 100%; border-collapse: collapse; }
-  #ticket td.r { text-align: right; }
+  body.caisse #ticket .c { text-align: center; }
+  body.caisse #ticket .b { font-weight: bold; }
+  body.caisse #ticket .big { font-size: 20px; font-weight: bold; }
+  body.caisse #ticket hr { border: none; border-top: 1px dashed #000; }
+  body.caisse #ticket table { width: 100%; border-collapse: collapse; }
+  body.caisse #ticket td.r { text-align: right; }
 }
 
 /* ---------- RTL ---------- */

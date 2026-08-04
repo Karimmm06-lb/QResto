@@ -221,6 +221,14 @@ const Store = (() => {
       return data;
     },
 
+    async restaurant(restaurantId) {
+      await init();
+      const { data, error } = await sb
+        .from('restaurants').select('*').eq('id', restaurantId).single();
+      if (error) throw error;
+      return data;
+    },
+
     // --------------------------------------------------------------- tables
     async tables(restaurantId) {
       await init();

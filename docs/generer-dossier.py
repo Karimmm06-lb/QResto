@@ -183,10 +183,17 @@ table(['Phase', 'État', 'Livrable'],
       [['1. Planification', 'Terminée', 'Périmètre, faisabilité, six risques, critères de succès'],
        ['2. Analyse', 'Terminée', '22 besoins fonctionnels, 10 non fonctionnels, 14 règles de gestion'],
        ['3. Conception', 'Terminée', 'Architecture, modèle de données, contrats, 22 décisions'],
-       ['4. Implémentation', 'Terminée', 'Trois interfaces, base de données déployée'],
-       ['5. Tests et intégration', 'En cours', "Tests d'intégration passés, recette sur site à faire"],
+       ['4. Implémentation', 'Terminée',
+        'Quatre interfaces, base déployée en production, deux cartes réelles importées'],
+       ['5. Tests et intégration', 'En cours',
+        "Tests d'intégration et de bout en bout passés ; recette sur site à mener"],
        ['6. Maintenance', 'À venir', 'Exploitation, supervision, évolutions']],
       [3.8, 2.4, 9.3])
+
+para("Vingt-trois décisions ont été prises à ce jour, dont une correction : D5-bis a "
+     "rouvert D5 après que la carte réelle d'un restaurant cible eut invalidé l'hypothèse "
+     "sur laquelle elle reposait. Sept décisions restent ouvertes ; trois d'entre elles "
+     "attendent des observations de terrain.")
 
 # ------------------------------------------------------------ 4. décisions
 h1('4. Décisions structurantes')
@@ -213,6 +220,11 @@ table(['Réf.', 'Décision retenue', 'Justification'],
        ['D5', 'Déclinaisons de plats obligatoires',
         "Certains restaurants ont des tailles, d'autres non : le schéma couvre le "
         "sur-ensemble. Un plat simple reçoit une déclinaison masquée par l'interface."],
+       ['D5-bis', 'Suppléments rattachés à la ligne de commande',
+        "Corrige D5. Les cartes réelles ont invalidé l'hypothèse « aucun restaurant cible "
+        "n'a exprimé ce besoin » : les suppléments y sont partout, et sur les pizzas leur "
+        "prix dépend de la taille. Traités comme des articles séparés, ils rendaient le "
+        "ticket cuisine ambigu."],
        ['D6', 'Disponibilité basculée manuellement',
         "Un décrément automatique suppose un inventaire tenu à jour au produit près, "
         "qu'aucun établissement cible ne tient. Un stock faux est pire qu'aucun stock."],
@@ -273,31 +285,118 @@ table(['Couche', 'Choix', 'Motif'],
 
 # ------------------------------------------------------------- 6. données
 h1('6. Modèle de données')
-para('Dix tables. La chaîne principale est la suivante :')
-para('restaurants  →  tables  →  sessions  →  commandes  →  lignes de commande',
+para("Onze tables, trente et un index, onze politiques de sécurité, quinze procédures et "
+     "un déclencheur. Les éléments qui suivent sont extraits du schéma réellement déployé.")
+
+h2('Modèle conceptuel')
+para('La chaîne principale :')
+para('RESTAURANT  →  TABLE  →  SESSION  →  COMMANDE  →  LIGNE DE COMMANDE',
      bold=True, align=C, space_after=10)
-table(['Table', 'Rôle'],
-      [['restaurants', 'Établissement et ses paramètres de fonctionnement'],
-       ['tables_resto', 'Emplacement physique porteur du jeton encodé dans le QR code'],
-       ['categories', 'Regroupement de plats dans le menu'],
-       ['plats', 'Article du menu, en trois langues, avec sa disponibilité'],
-       ['variantes_plat', 'Déclinaison (taille, format) portant le prix'],
-       ['sessions', "Le couvert : unité de facturation"],
-       ['commandes', 'Un envoi effectué par un convive'],
-       ['lignes_commande', 'Déclinaison et quantité, avec le prix figé'],
-       ['compteurs_journee', 'Numérotation séquentielle résistante à la concurrence'],
-       ['journal_audit', 'Trace des impressions, annulations et encaissements']],
+table(['Entité', 'Définition métier'],
+      [['Restaurant', 'Établissement abonné au service, avec ses paramètres de fonctionnement'],
+       ['Table', 'Emplacement physique dans la salle, porteur du QR code'],
+       ['Catégorie', 'Regroupement de plats dans la carte'],
+       ['Plat', 'Article de la carte. Un supplément est un plat marqué comme tel'],
+       ['Variante', 'Déclinaison d\'un plat portant le prix'],
+       ['Session', 'Le couvert : un groupe installé à une table, unité de facturation'],
+       ['Commande', 'Un envoi effectué par un convive pendant une session'],
+       ['Ligne de commande', 'Une variante et sa quantité dans une commande']],
+      [3.5, 12.0])
+
+para('Trois associations méritent attention', bold=True)
+puce("SESSION s'intercale entre TABLE et COMMANDE. C'est le cœur du modèle : sans elle, "
+     "trois commandes d'une même table seraient trois objets sans lien, et le caissier "
+     "devrait deviner quoi encaisser.")
+puce("LIGNE DE COMMANDE est en relation réflexive avec elle-même : une ligne « camembert » "
+     "pointe vers la ligne « burger » qu'elle complète. Le ticket cuisine peut ainsi "
+     "indiquer sur quel plat poser le supplément.")
+puce("PLAT et CATÉGORIE sont liés en plusieurs-à-plusieurs pour porter la portée d'un "
+     "supplément : les fromages s'appliquent aux burgers et aux sandwichs, les garnitures "
+     "sucrées aux crêpes.")
+
+h2('Modèle logique')
+table(['Table', 'Colonnes principales'],
+      [['restaurants', 'id, nom, ville, fuseau, fin_journee, validation_requise, code_table_requis, eta_active'],
+       ['tables_resto', 'id, restaurant_id, numero, qr_token, active'],
+       ['categories', 'id, restaurant_id, nom_fr, nom_ar, nom_en, ordre'],
+       ['plats', 'id, restaurant_id, categorie_id, noms et descriptions trilingues, image_url, disponible, archive, est_supplement'],
+       ['variantes_plat', 'id, plat_id, libelles trilingues, prix, ordre'],
+       ['supplements_categories', 'supplement_id, categorie_id'],
+       ['sessions', 'id, restaurant_id, table_id, statut, journee, total, ouverte_le, activite_le, fermee_le'],
+       ['commandes', 'id, restaurant_id, session_id, numero, journee, statut, nom_convive, note, total, eta_min, eta_max, secret, imprimee_le, motif_annulation'],
+       ['lignes_commande', 'id, commande_id, variante_id, plat_id, quantite, prix_unitaire, libelle, parent_ligne_id'],
+       ['compteurs_journee', 'restaurant_id, journee, dernier_numero'],
+       ['journal_audit', 'id, restaurant_id, commande_id, session_id, action, detail, acteur, cree_le']],
+      [3.5, 12.0])
+
+h2('Colonnes dont le choix mérite justification')
+table(['Colonne', 'Pourquoi elle existe sous cette forme'],
+      [['restaurants.fin_journee',
+        "La journée d'exploitation se termine à 4 h, pas à minuit : un restaurant ouvert "
+        "jusqu'à 1 h verrait sinon son service coupé en deux."],
+       ['tables_resto.qr_token',
+        "Le QR encode un identifiant aléatoire, jamais le numéro de table : un numéro "
+        "serait devinable."],
+       ['plats.archive',
+        "Un plat retiré de la carte n'est jamais supprimé : les commandes passées le "
+        "référencent encore."],
+       ['plats.est_supplement',
+        "Un supplément est un plat marqué comme tel : il hérite des déclinaisons, de la "
+        "disponibilité et du prix figé sans table dédiée."],
+       ['variantes_plat.prix',
+        "Le prix vit sur la déclinaison, jamais sur le plat. Garder les deux créerait deux "
+        "chemins de lecture et des incohérences."],
+       ['commandes.secret',
+        "Seul moyen pour le client de suivre sa commande sans exposer celles des autres "
+        "tables."],
+       ['commandes.imprimee_le',
+        "L'impression du ticket est l'acte d'engagement de production."],
+       ['lignes_commande.prix_unitaire',
+        "Prix figé à la vente. Ce n'est pas une copie du prix courant : sans lui, une "
+        "hausse de tarif fausserait rétroactivement tout l'historique."],
+       ['lignes_commande.libelle',
+        "Instantané du libellé. Un ticket réimprimé doit rester identique à l'original, "
+        "même si le plat a été renommé depuis."],
+       ['compteurs_journee',
+        "Sans compteur dédié, deux commandes simultanées obtiendraient le même numéro."]],
       [4.5, 11.0])
 
-h2('Choix de conception notables')
-puce("Le prix et le libellé sont figés dans la ligne de commande : un changement de tarif "
-     "ne réécrit pas l'historique, et un ticket réimprimé reste identique à l'original.")
-puce("Un index unique partiel garantit au niveau de la base qu'une table n'a qu'une seule "
-     "session ouverte. La règle n'est pas confiée au code applicatif.")
-puce("Un plat retiré du menu est archivé, jamais supprimé : les commandes passées le "
-     "référencent encore.")
-puce("Chaque commande porte un secret, seul moyen pour le client de suivre la sienne sans "
-     "voir celles des autres tables.")
+h2('Contraintes portées par la base')
+para("Ces règles ne sont pas écrites dans le navigateur. Le client n'étant pas authentifié, "
+     "tout contrôle placé côté interface serait contournable.")
+table(['Contrainte', 'Ce qu\'elle garantit'],
+      [['Index unique partiel sur les sessions ouvertes',
+        "Une table n'a qu'une seule session ouverte : deux convives tombent forcément sur "
+        "la même addition."],
+       ['Unicité du numéro par restaurant et par journée',
+        'Pas de doublon de numéro de commande dans une journée.'],
+       ['Contraintes de domaine sur les statuts',
+        'Aucun état hors des machines à états définies.'],
+       ['Déclencheur sur les suppléments',
+        "Un supplément ne se commande pas seul, un plat ne se rattache pas à un plat, et "
+        "un supplément n'en porte pas un autre."],
+       ['Suppressions restreintes',
+        "On ne supprime pas une table qui a servi, ni une déclinaison déjà commandée."]],
+      [5.5, 10.0])
+
+h2('Normalisation')
+para("Le schéma est en troisième forme normale, avec trois dénormalisations assumées.")
+table(['Champ', 'Justification'],
+      [['sessions.total, commandes.total',
+        "Le poste caisse affiche des montants en continu ; les recalculer à chaque "
+        "rafraîchissement serait coûteux et inutile."],
+       ['lignes_commande.plat_id',
+        'Déductible via la déclinaison, mais les statistiques par plat exigeraient sinon '
+        'une jointure de plus sur la table la plus volumineuse.'],
+       ['lignes_commande.libelle',
+        "Ce n'est pas une duplication mais un instantané : le ticket doit rester identique "
+        "même si le plat est renommé."]],
+      [4.5, 11.0])
+
+h2('Volumétrie')
+para("Moins de cinq cent mille lignes par an et par restaurant, dont l'essentiel en lignes "
+     "de commande et en journal d'audit. Aucune contrainte de volumétrie : le plan gratuit "
+     "couvre plusieurs années d'exploitation pour plusieurs établissements.")
 
 # ------------------------------------------------------------ 7. sécurité
 h1('7. Sécurité')
@@ -349,7 +448,9 @@ table(['Règle vérifiée', 'Scénario', 'Résultat'],
        ['Quantité aberrante', 'Valeurs négative et à 999', 'Rejeté'],
        ['Plat épuisé dans un panier', 'Panier mixte, un plat indisponible',
         'Commande entièrement refusée'],
-       ["Contrôle d'accès à la clôture", 'Appel en rôle anonyme', 'Rejeté après correctif']],
+       ["Contrôle d'accès à la clôture", 'Appel en rôle anonyme', 'Rejeté après correctif'],
+       ['Supplément commandé seul', 'Camembert sans plat', 'Rejeté'],
+       ['Plat servant de supplément', 'Burger rattaché à un burger', 'Rejeté']],
       [4.5, 5.5, 5.5])
 
 h2('Test de bout en bout dans le navigateur')
@@ -359,6 +460,19 @@ para("Le parcours complet a été déroulé : scan du QR, composition du panier 
      "la commande en cuisine, et le téléphone du client a reflété le changement. Le cycle "
      "s'est achevé par la mise en statut prête, puis servie, puis l'encaissement de la table "
      "pour 4 050 DA.")
+
+h2('Mise en situation réelle')
+para("Deux cartes de restaurants d'Aïn Benian ont été relevées et importées : Black & "
+     "Silver, soixante-douze plats sur treize catégories, et Spicy Max, trente-huit plats "
+     "sur sept catégories. Cette confrontation au réel a produit trois enseignements.")
+puce("Elle a invalidé une décision : les suppléments, écartés au cadrage faute de besoin "
+     "exprimé, sont présents sur les deux cartes. D5-bis a corrigé le modèle.")
+puce("Elle a validé les déclinaisons : pizzas en deux tailles, tacos en deux formats, "
+     "burgers à prix unique — les trois cas coexistent sur une même carte.")
+puce("Elle a révélé le seul écart avec le cadrage encore ouvert : les photos des plats, "
+     "annoncées comme l'une des quatre fonctionnalités retenues, ne sont pas livrées. Les "
+     "sources publiques ne fournissent que quelques visuels basse définition, insuffisants "
+     "et dont la republication demanderait l'accord des établissements.")
 
 h2("Enseignement sur l'architecture")
 para("La couche d'accès aux données avait été isolée dès le prototype, dans l'idée que "
@@ -380,8 +494,17 @@ table(['Réf.', 'Sujet', 'Enjeu'],
         'Le prénom doit être purgé à la clôture, les montants conservés'],
        ['D18', 'Sur place ou à emporter', 'Non traité'],
        ['D19', 'Modèle économique', 'Non traité'],
-       ['D20', 'Limitation de débit', 'Protection contre le spam de commandes']],
+       ['D20', 'Limitation de débit', 'Protection contre le spam de commandes'],
+       ['—', 'Photos des plats',
+        "Fonctionnalité annoncée au cadrage, non livrée : les sources publiques sont "
+        "insuffisantes et leur republication demanderait l'accord des établissements"]],
       [1.5, 5.0, 9.0])
+
+para("Trois de ces décisions dépendent d'observations de terrain", bold=True)
+para("D12, D13 et D14 portent sur la coupure d'internet en service, la panne d'imprimante "
+     "et la maintenance du menu. Les trancher depuis un bureau produirait des hypothèses, "
+     "pas des décisions. Une fiche d'observation a été préparée pour la première visite, "
+     "où chaque ligne relevée alimente une décision précise.")
 
 para("Le risque principal n'est pas technique", bold=True)
 para("Le risque le plus probable du projet est la saisie initiale du menu : plusieurs heures "

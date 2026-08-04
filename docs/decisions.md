@@ -98,8 +98,41 @@ déclinaison « Standard » que l'interface masque.
 sur-ensemble. Conserver à la fois `plats.prix` et des déclinaisons optionnelles créerait
 deux chemins de lecture et des incohérences de prix.
 
-*Alternative écartée :* suppléments cumulables — combinatoire de prix et règles de
-compatibilité, pour un besoin non exprimé. La note libre couvre les demandes particulières.
+*Alternative écartée à tort :* suppléments cumulables — voir D5-bis.
+
+---
+
+### D5-bis — Suppléments rattachés à la ligne de commande
+**Type :** métier · **Statut :** arrêtée · **Corrige D5**
+
+Un supplément est un plat portant `est_supplement`. Sa ligne de commande pointe vers la
+ligne du plat qu'elle complète. Sa portée est limitée aux familles de plats auxquelles il
+s'applique.
+
+*Pourquoi cette décision rouvre D5 :* les suppléments avaient été écartés au motif
+qu'« aucun restaurant cible ne les a exprimés ». **L'hypothèse était fausse.** Les cartes
+réelles de Black & Silver et de Spicy Max en comportent partout — fromages sur les
+burgers et sandwichs, garnitures sur les crêpes — et sur les pizzas leur prix dépend même
+de la taille commandée (250 en Normale, 500 en Mega).
+
+*Ce que le contournement produisait :* traités comme des articles indépendants, les
+suppléments donnaient un ticket cuisine ambigu. Le cuistot voyait « 1 × Burger DZ » puis
+« 1 × Camembert » sans savoir qu'ils allaient ensemble, surtout avec trois sandwichs
+commandés à la même table.
+
+*Coût de la correction :* deux colonnes, une table de portée et un déclencheur. Modéliser
+un supplément comme un plat lui fait hériter gratuitement des déclinaisons, de la
+disponibilité et du prix figé.
+
+*Bénéfice imprévu :* les statistiques gagnent une information que le restaurateur n'avait
+jamais eue — quels suppléments se vendent, et sur quels plats.
+
+*Alternative écartée :* une déclinaison par combinaison (« Burger DZ + camembert »,
+« Burger DZ + gouda », « Burger DZ + les deux »…) ferait exploser la carte.
+
+*Leçon de méthode :* une décision fondée sur « le besoin n'est pas exprimé » doit être
+revue dès qu'on obtient une donnée réelle. Ici, la carte d'un seul restaurant cible a
+suffi à l'invalider.
 
 ---
 

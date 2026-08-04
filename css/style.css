@@ -119,6 +119,20 @@ h2 { font-size: 17px; margin: 24px 0 10px; }
 .vrow .vprix { flex: 1; color: var(--accent); font-weight: 800; }
 [dir="rtl"] .dish { text-align: right; }
 
+/* ---------- suppléments (D5-bis) ---------- */
+.suppzone { margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; }
+.suppchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chipbtn {
+  padding: 6px 10px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  font-size: 13px;
+}
+.chipbtn b { color: var(--accent); margin-inline-start: 4px; }
+.lienSupp {
+  border: none; background: none; color: var(--muted);
+  cursor: pointer; font-size: 13px; padding: 0 4px;
+}
+
 /* ---------- bandeau d'erreur ---------- */
 .alerte {
   display: none; margin: 0; padding: 12px 16px;
@@ -192,6 +206,7 @@ textarea, input, select {
   display: flex; justify-content: space-between; gap: 12px;
   padding: 3px 0; font-size: 14px;
 }
+.cmd li.supp { color: var(--muted); font-size: 13px; padding-inline-start: 14px; }
 .cmd .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .cmd .note {
   background: var(--surface-2); border-radius: 10px; padding: 8px 10px;

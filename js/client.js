@@ -4,48 +4,61 @@ const qrToken = new URLSearchParams(location.search).get('t');
 
 let lang = localStorage.getItem('qresto.lang') || 'fr';
 let ctx = null;          // restaurant, numéro de table
-let menu = null;         // catégories + plats + déclinaisons
+let menu = null;         // catégories + plats + suppléments
 let cat = 'all';
-let panier = {};         // variante_id -> quantité
-let suivi = null;        // fonction d'arrêt de l'interrogation (D22)
+let vue = 'menu';        // menu | panier | confirmation
+let suivi = null;        // arrêt de l'interrogation (D22)
+
+// D5-bis : une ligne de panier porte ses propres suppléments.
+// { [varianteId]: { qty, supps: { [varianteId]: qty } } }
+let panier = {};
 
 const $ = s => document.querySelector(s);
 const t = k => I18N[lang][k];
 const prix = n => fmt.prix(n, lang);
 
-// D3b : le prénom est mémorisé après la première saisie.
-const nomMemorise = () => localStorage.getItem('qresto.nom') || '';
+const nomPlat = p => p[`nom_${lang}`] || p.nom_fr;
+const descPlat = p => p[`desc_${lang}`] || p.desc_fr || '';
+const nomVar = v => v[`libelle_${lang}`] || v.libelle_fr;
+const estStandard = v => v.libelle_fr === 'Standard';
+
+function trouverVariante(vid) {
+  for (const p of [...menu.plats, ...menu.supplements]) {
+    const v = p.variantes_plat.find(x => x.id === vid);
+    if (v) return { plat: p, variante: v };
+  }
+  return null;
+}
 
 function setLang(next) {
   lang = next;
   localStorage.setItem('qresto.lang', next);
   document.documentElement.lang = next;
   document.documentElement.dir = I18N[next].dir;
-  document.querySelectorAll('.langs button').forEach(b =>
-    b.classList.toggle('on', b.dataset.lang === next));
+  document.querySelectorAll('.langs button')
+    .forEach(b => b.classList.toggle('on', b.dataset.lang === next));
   rendre();
 }
 
-const nomPlat = p => p[`nom_${lang}`] || p.nom_fr;
-const descPlat = p => p[`desc_${lang}`] || p.desc_fr || '';
-const nomVariante = v => v[`libelle_${lang}`] || v.libelle_fr;
-const estStandard = v => v.libelle_fr === 'Standard';
-
-function articles() {
-  const out = [];
-  for (const [vid, q] of Object.entries(panier)) {
-    if (!q) continue;
-    for (const p of menu.plats) {
-      const v = p.variantes_plat.find(x => x.id === vid);
-      if (v) out.push({ variante: v, plat: p, quantite: q });
-    }
-  }
-  return out;
+// ---------------------------------------------------------------- calculs
+function lignes() {
+  return Object.entries(panier)
+    .filter(([, l]) => l.qty > 0)
+    .map(([vid, l]) => {
+      const base = trouverVariante(vid);
+      const supps = Object.entries(l.supps || {})
+        .filter(([, q]) => q > 0)
+        .map(([sid, q]) => ({ ...trouverVariante(sid), qty: q }));
+      return { vid, ...base, qty: l.qty, supps };
+    });
 }
 
-const total = () => articles().reduce((s, a) => s + a.variante.prix * a.quantite, 0);
-const nbArticles = () => articles().reduce((s, a) => s + a.quantite, 0);
+const totalLigne = l =>
+  l.variante.prix * l.qty + l.supps.reduce((s, x) => s + x.variante.prix * x.qty, 0);
+const total = () => lignes().reduce((s, l) => s + totalLigne(l), 0);
+const nbArticles = () => lignes().reduce((s, l) => s + l.qty, 0);
 
+// ------------------------------------------------------------------ menu
 function rendreCategories() {
   const toutes = [{ id: 'all', nom_fr: 'Tout', nom_ar: 'الكل', nom_en: 'All' }, ...menu.categories];
   $('#cats').innerHTML = toutes.map(c =>
@@ -57,63 +70,96 @@ function rendrePlats() {
   const liste = cat === 'all' ? menu.plats : menu.plats.filter(p => p.categorie_id === cat);
 
   $('#dishes').innerHTML = liste.map(p => {
-    // D5 : une seule déclinaison « Standard » est masquée, l'interface
-    // ressemble alors à un plat à prix unique.
+    // D5 : une déclinaison « Standard » unique est masquée — le plat paraît
+    // simplement avoir un prix.
     const simple = p.variantes_plat.length === 1 && estStandard(p.variantes_plat[0]);
 
-    const lignes = p.variantes_plat.map(v => {
-      const q = panier[v.id] || 0;
-      const etiquette = simple ? '' : `<span class="vlbl">${nomVariante(v)}</span>`;
+    const rows = p.variantes_plat.map(v => {
+      const q = panier[v.id]?.qty || 0;
       return `<div class="vrow">
-          ${etiquette}
-          <span class="vprix">${prix(v.prix)}</span>
-          <span class="qty">
-            ${q > 0 ? `<button data-moins="${v.id}">−</button><span class="n">${q}</span>` : ''}
-            <button class="plus" data-plus="${v.id}" ${p.disponible ? '' : 'disabled'}>+</button>
-          </span>
-        </div>`;
+        ${simple ? '' : `<span class="vlbl">${nomVar(v)}</span>`}
+        <span class="vprix">${prix(v.prix)}</span>
+        <span class="qty">
+          ${q > 0 ? `<button data-moins="${v.id}">−</button><span class="n">${q}</span>` : ''}
+          <button class="plus" data-plus="${v.id}" ${p.disponible ? '' : 'disabled'}>+</button>
+        </span></div>`;
     }).join('');
 
     return `<div class="card dish ${p.disponible ? '' : 'epuise'}">
-        <div class="info">
-          <div class="name">${nomPlat(p)} ${p.disponible ? '' : `<span class="chip payee">${t('epuise')}</span>`}</div>
-          <div class="desc">${descPlat(p)}</div>
-        </div>
-        <div class="variantes">${lignes}</div>
-      </div>`;
+      <div class="info">
+        <div class="name">${nomPlat(p)}
+          ${p.disponible ? '' : `<span class="chip payee">${t('epuise')}</span>`}</div>
+        ${descPlat(p) ? `<div class="desc">${descPlat(p)}</div>` : ''}
+      </div>
+      <div class="variantes">${rows}</div>
+    </div>`;
   }).join('');
 }
 
-function rendreBarre() {
-  const n = nbArticles();
-  $('#cartbar').style.display = n ? 'block' : 'none';
-  $('#noteBox').style.display = n ? 'block' : 'none';
-  $('#cartCount').textContent = `${n} ${t('items')}`;
-  $('#cartTotal').textContent = prix(total());
-  $('#sendBtn').textContent = t('send');
-  $('#note').placeholder = t('note');
-  $('#nom').placeholder = t('votreNom');
+// ---------------------------------------------------------------- panier
+function rendrePanier() {
+  const L = lignes();
+  if (!L.length) { vue = 'menu'; rendre(); return; }
+
+  // Un supplément n'est proposé que sur les familles de plats auxquelles il
+  // s'applique : sans ce filtre, l'écran proposerait « Kit Kat » sur un burger.
+  const suppsPour = plat => menu.supplements.filter(s =>
+    s.disponible && (s.portee.length === 0 || s.portee.includes(plat.categorie_id)));
+
+  // Sur une pizza Normale, seul le supplément Normale a du sens : quand les
+  // déclinaisons portent le même nom des deux côtés, on ne garde que celle
+  // qui correspond à la taille commandée.
+  const variantesUtiles = (supp, ligne) => {
+    const correspondante = supp.variantes_plat.filter(v => v.libelle_fr === ligne.variante.libelle_fr);
+    return correspondante.length ? correspondante : supp.variantes_plat;
+  };
+
+  $('#panierView').innerHTML = `
+    <h1 style="margin-top:16px">${t('cart')}</h1>
+    ${L.map(l => {
+      const simple = l.plat.variantes_plat.length === 1 && estStandard(l.plat.variantes_plat[0]);
+      const dispo = suppsPour(l.plat);
+      return `<div class="card" style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;gap:10px">
+          <div>
+            <div class="name">${l.qty} × ${nomPlat(l.plat)}${simple ? '' : ` (${nomVar(l.variante)})`}</div>
+            ${l.supps.map(s => `<div class="desc">+ ${s.qty} × ${nomPlat(s.plat)}
+              ${s.plat.variantes_plat.length > 1 ? `(${nomVar(s.variante)})` : ''}
+              — ${prix(s.variante.prix * s.qty)}
+              <button class="lienSupp" data-retirer="${l.vid}|${s.variante.id}">✕</button></div>`).join('')}
+          </div>
+          <div style="font-weight:800;white-space:nowrap">${prix(totalLigne(l))}</div>
+        </div>
+        ${dispo.length ? `<div class="suppzone">
+          <div class="desc" style="margin-bottom:6px">${t('ajouterSupp')}</div>
+          <div class="suppchips">${dispo.map(s => variantesUtiles(s, l).map(v =>
+            `<button class="chipbtn" data-supp="${l.vid}|${v.id}">
+               ${nomPlat(s)}${variantesUtiles(s, l).length > 1 ? ` ${nomVar(v)}` : ''}
+               <b>+${prix(v.prix)}</b></button>`).join('')).join('')}</div>
+        </div>` : ''}
+      </div>`;
+    }).join('')}
+
+    <div class="card">
+      <input id="nom" maxlength="30" placeholder="${t('votreNom')}" style="margin-bottom:8px">
+      <textarea id="note" rows="2" placeholder="${t('note')}"></textarea>
+    </div>
+    <button class="btn ghost wide" id="retourBtn" style="margin-top:10px">${t('retourMenu')}</button>`;
+
+  $('#nom').value = localStorage.getItem('qresto.nom') || '';
+  $('#retourBtn').onclick = () => { vue = 'menu'; rendre(); };
 }
 
-function rendre() {
-  if (!ctx || !menu) return;
-  $('#tableBadge').textContent = `${t('table')} ${ctx.table_numero}`;
-  rendreCategories();
-  rendrePlats();
-  rendreBarre();
-}
-
+// ---------------------------------------------------------- confirmation
 function afficherConfirmation(cmd) {
-  $('#menuView').style.display = 'none';
-  $('#cartbar').style.display = 'none';
-  const vue = $('#confirmView');
-  vue.style.display = '';
+  vue = 'confirmation';
+  rendre();
 
   const eta = cmd.eta_min
     ? `<div class="badge" style="font-size:15px;padding:10px 16px">
          ⏱️ ${t('eta')} ${cmd.eta_min}–${cmd.eta_max} ${t('min')}</div>` : '';
 
-  vue.innerHTML = `
+  $('#confirmView').innerHTML = `
     <div class="card" style="text-align:center;margin-top:24px">
       <div style="font-size:52px">✅</div>
       <h1 style="margin-top:8px">${t('sent')}</h1>
@@ -131,7 +177,6 @@ function afficherConfirmation(cmd) {
       <button class="btn ghost wide" id="againBtn">${t('newOrder')}</button>
     </div>`;
 
-  // D22 : interrogation toutes les 10 s, arrêt sur état terminal.
   if (suivi) suivi();
   suivi = Store.suivreCommande(cmd.secret, etat => {
     const chip = $('#statutChip');
@@ -142,12 +187,64 @@ function afficherConfirmation(cmd) {
 
   $('#againBtn').onclick = () => {
     if (suivi) { suivi(); suivi = null; }
-    panier = {}; $('#note').value = '';
-    vue.style.display = 'none';
-    $('#menuView').style.display = '';
-    rendre();
+    panier = {}; vue = 'menu'; rendre();
   };
 }
+
+// ----------------------------------------------------------------- rendu
+function rendre() {
+  if (!ctx || !menu) return;
+  $('#tableBadge').textContent = `${t('table')} ${ctx.table_numero}`;
+
+  $('#menuView').style.display    = vue === 'menu' ? '' : 'none';
+  $('#panierView').style.display  = vue === 'panier' ? '' : 'none';
+  $('#confirmView').style.display = vue === 'confirmation' ? '' : 'none';
+
+  if (vue === 'menu') { rendreCategories(); rendrePlats(); }
+  if (vue === 'panier') rendrePanier();
+
+  const n = nbArticles();
+  $('#cartbar').style.display = (n && vue !== 'confirmation') ? 'block' : 'none';
+  $('#cartCount').textContent = `${n} ${t('items')}`;
+  $('#cartTotal').textContent = prix(total());
+  $('#sendBtn').textContent = vue === 'panier' ? t('send') : t('voirCommande');
+}
+
+// --------------------------------------------------------------- actions
+document.addEventListener('click', e => {
+  const plus = e.target.closest('[data-plus]');
+  const moins = e.target.closest('[data-moins]');
+  const c = e.target.closest('[data-cat]');
+  const l = e.target.closest('[data-lang]');
+  const supp = e.target.closest('[data-supp]');
+  const ret = e.target.closest('[data-retirer]');
+
+  if (plus) {
+    const id = plus.dataset.plus;
+    panier[id] = panier[id] || { qty: 0, supps: {} };
+    panier[id].qty++;
+    rendrePlats(); rendre();
+  }
+  if (moins) {
+    const id = moins.dataset.moins;
+    panier[id].qty--;
+    if (panier[id].qty <= 0) delete panier[id];
+    rendrePlats(); rendre();
+  }
+  if (c) { cat = c.dataset.cat; rendreCategories(); rendrePlats(); }
+  if (l) setLang(l.dataset.lang);
+
+  if (supp) {
+    const [vid, sid] = supp.dataset.supp.split('|');
+    panier[vid].supps[sid] = (panier[vid].supps[sid] || 0) + 1;
+    rendre();
+  }
+  if (ret) {
+    const [vid, sid] = ret.dataset.retirer.split('|');
+    delete panier[vid].supps[sid];
+    rendre();
+  }
+});
 
 function erreur(message) {
   const b = $('#erreur');
@@ -156,42 +253,36 @@ function erreur(message) {
   setTimeout(() => { b.style.display = 'none'; }, 6000);
 }
 
-document.addEventListener('click', e => {
-  const plus = e.target.closest('[data-plus]');
-  const moins = e.target.closest('[data-moins]');
-  const c = e.target.closest('[data-cat]');
-  const l = e.target.closest('[data-lang]');
+async function actionPrincipale() {
+  if (vue === 'menu') { vue = 'panier'; rendre(); window.scrollTo(0, 0); return; }
 
-  if (plus)  { panier[plus.dataset.plus] = (panier[plus.dataset.plus] || 0) + 1; rendrePlats(); rendreBarre(); }
-  if (moins) { panier[moins.dataset.moins] -= 1; rendrePlats(); rendreBarre(); }
-  if (c)     { cat = c.dataset.cat; rendreCategories(); rendrePlats(); }
-  if (l)     setLang(l.dataset.lang);
-});
-
-async function envoyer() {
   const bouton = $('#sendBtn');
-  bouton.disabled = true;                       // évite le double envoi (D10 partiel)
+  bouton.disabled = true;                       // évite le double envoi
   try {
     const nom = $('#nom').value.trim();
     if (nom) localStorage.setItem('qresto.nom', nom);
 
     const cmd = await Store.creerCommande({
       qrToken,
-      lignes: articles().map(a => ({ variante_id: a.variante.id, quantite: a.quantite })),
+      lignes: lignes().map(l => ({
+        variante_id: l.variante.id,
+        quantite: l.qty,
+        supplements: l.supps.map(s => ({ variante_id: s.variante.id, quantite: s.qty })),
+      })),
       nom,
       note: $('#note').value.trim(),
     });
     afficherConfirmation(cmd);
   } catch (e) {
     erreur(Store.messageErreur(e));
-    // Un plat a pu passer en « épuisé » : on recharge le menu.
-    menu = await Store.menu(ctx.restaurant_id);
+    menu = await Store.menu(ctx.restaurant_id);   // un plat a pu passer en épuisé
     rendre();
   } finally {
     bouton.disabled = false;
   }
 }
 
+// -------------------------------------------------------------- démarrage
 (async function demarrer() {
   if (!qrToken) {
     document.body.innerHTML =
@@ -203,11 +294,9 @@ async function envoyer() {
     if (!ctx) throw new Error('Table inconnue');
     menu = await Store.menu(ctx.restaurant_id);
     $('#restoNom').textContent = ctx.restaurant;
-    $('#nom').value = nomMemorise();
-    $('#sendBtn').onclick = envoyer;
+    $('#sendBtn').onclick = actionPrincipale;
     setLang(lang);
   } catch (e) {
-    document.body.innerHTML =
-      `<div class="empty">${Store.messageErreur(e)}</div>`;
+    document.body.innerHTML = `<div class="empty">${Store.messageErreur(e)}</div>`;
   }
 })();

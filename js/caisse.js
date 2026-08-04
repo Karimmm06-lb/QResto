@@ -37,6 +37,14 @@ function erreur(message) {
   setTimeout(() => { b.style.display = 'none'; }, 6000);
 }
 
+// D5-bis : chaque supplément suit immédiatement le plat qu'il complète.
+// Sans cet ordre, le cuistot ne sait pas sur quel plat poser le camembert.
+function lignesHierarchisees(c) {
+  const lignes = c.lignes_commande || [];
+  const parents = lignes.filter(l => !l.parent_ligne_id);
+  return parents.flatMap(p => [p, ...lignes.filter(s => s.parent_ligne_id === p.id)]);
+}
+
 function carteCommande(c) {
   const actions = {
     nouvelle: `<button class="btn sm blue" data-print="${c.id}">🖨️ Imprimer</button>
@@ -57,8 +65,10 @@ function carteCommande(c) {
       <span class="spacer" style="flex:1"></span>
       <span class="chip ${c.statut}">${LIB[c.statut]}</span>
     </div>
-    <ul>${c.lignes_commande.map(l =>
-      `<li><span>${l.quantite} × ${l.libelle}</span><span>${fmt.prix(l.quantite * l.prix_unitaire)}</span></li>`
+    <ul>${lignesHierarchisees(c).map(l =>
+      `<li class="${l.parent_ligne_id ? 'supp' : ''}">
+         <span>${l.parent_ligne_id ? '+ ' : ''}${l.quantite} × ${l.libelle}</span>
+         <span>${fmt.prix(l.quantite * l.prix_unitaire)}</span></li>`
     ).join('')}</ul>
     ${c.note ? `<div class="note">📝 ${c.note}</div>` : ''}
     ${c.motif_annulation ? `<div class="note">🚫 ${c.motif_annulation}</div>` : ''}
@@ -126,8 +136,9 @@ async function imprimer(id) {
     <div class="c">Commande N°${cmd.numero} — ${fmt.heure(cmd.cree_le)}</div>
     ${cmd.nom_convive ? `<div class="c b">${cmd.nom_convive}</div>` : ''}
     <hr>
-    <table>${cmd.lignes_commande.map(l =>
-      `<tr><td class="b">${l.quantite} x</td><td>${l.libelle}</td>
+    <table>${lignesHierarchisees(cmd).map(l =>
+      `<tr><td class="b">${l.parent_ligne_id ? '' : l.quantite + ' x'}</td>
+           <td>${l.parent_ligne_id ? '&nbsp;&nbsp;+ ' + l.quantite + ' ' : ''}${l.libelle}</td>
            <td class="r">${l.quantite * l.prix_unitaire}</td></tr>`).join('')}</table>
     <hr>
     <table><tr><td class="b">TOTAL</td><td class="r b">${cmd.total} DA</td></tr></table>

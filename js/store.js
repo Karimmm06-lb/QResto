@@ -48,11 +48,12 @@ const Store = (() => {
     // ---------------------------------------------------------------- menu
     async menu(restaurantId) {
       await init();
-      const [cats, plats] = await Promise.all([
+      const [cats, plats, portees] = await Promise.all([
         sb.from('categories').select('*').eq('restaurant_id', restaurantId).order('ordre'),
         sb.from('plats')
           .select('*, variantes_plat(*)')
           .eq('restaurant_id', restaurantId).eq('archive', false).order('ordre'),
+        sb.from('supplements_categories').select('*'),
       ]);
       if (cats.error) throw cats.error;
       if (plats.error) throw plats.error;
@@ -65,7 +66,22 @@ const Store = (() => {
       plats.data.sort((a, b) =>
         (rang.get(a.categorie_id) ?? 99) - (rang.get(b.categorie_id) ?? 99) || a.ordre - b.ordre);
 
-      return { categories: cats.data, plats: plats.data };
+      // D5-bis : un supplément est un plat marqué comme tel. Il ne s'affiche
+      // pas dans le menu — il s'ajoute sur une ligne du panier.
+      const supplements = plats.data.filter(p => p.est_supplement);
+
+      // Portée d'un supplément : les catégories auxquelles il s'applique.
+      // Aucune ligne = applicable partout, pour ne pas imposer ce paramétrage
+      // aux petits restaurants.
+      supplements.forEach(s => {
+        s.portee = (portees.data || [])
+          .filter(x => x.supplement_id === s.id)
+          .map(x => x.categorie_id);
+      });
+      const cartes = plats.data.filter(p => !p.est_supplement);
+      const catsUtiles = cats.data.filter(c => cartes.some(p => p.categorie_id === c.id));
+
+      return { categories: catsUtiles, plats: cartes, supplements };
     },
 
     // Le QR ne contient qu'un jeton : il faut retrouver le restaurant.

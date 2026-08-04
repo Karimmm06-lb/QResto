@@ -17,6 +17,8 @@ const I18N = {
     st_nouvelle: 'Reçue', st_cuisine: 'En préparation', st_prete: 'Prête',
     st_servie: 'Servie', st_annulee: 'Annulée',
     items: 'articles', da: 'DA',
+    voirCommande: 'Voir ma commande', retourMenu: '← Retour au menu',
+    ajouterSupp: 'Ajouter un supplément :',
   },
   ar: {
     dir: 'rtl',
@@ -30,6 +32,8 @@ const I18N = {
     st_nouvelle: 'مستلم', st_cuisine: 'قيد التحضير', st_prete: 'جاهز',
     st_servie: 'تم التقديم', st_annulee: 'ملغى',
     items: 'عناصر', da: 'دج',
+    voirCommande: 'عرض طلبي', retourMenu: '← العودة إلى القائمة',
+    ajouterSupp: 'إضافة مكمل :',
   },
   en: {
     dir: 'ltr',
@@ -43,5 +47,7 @@ const I18N = {
     st_nouvelle: 'Received', st_cuisine: 'Preparing', st_prete: 'Ready',
     st_servie: 'Served', st_annulee: 'Cancelled',
     items: 'items', da: 'DA',
+    voirCommande: 'View my order', retourMenu: '← Back to menu',
+    ajouterSupp: 'Add an extra:',
   },
 };

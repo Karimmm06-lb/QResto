@@ -8,6 +8,7 @@ let menu = null;         // catégories + plats + suppléments
 let cat = 'all';
 let vue = 'menu';        // menu | panier | confirmation
 let suivi = null;        // arrêt de l'interrogation (D22)
+let cleEnvoi = null;     // clé d'idempotence de la tentative en cours (D10)
 
 // D5-bis : une ligne de panier porte ses propres suppléments.
 // { [varianteId]: { qty, supps: { [varianteId]: qty } } }
@@ -289,7 +290,12 @@ async function actionPrincipale() {
   if (vue === 'menu') { vue = 'panier'; rendre(); window.scrollTo(0, 0); return; }
 
   const bouton = $('#sendBtn');
-  bouton.disabled = true;                       // évite le double envoi
+  bouton.disabled = true;
+
+  // D10 : une seule clé pour tout ce panier. Elle survit à un échec réseau et
+  // à un nouvel appui, jusqu'à ce que la commande soit réellement passée.
+  if (!cleEnvoi) cleEnvoi = crypto.randomUUID();
+
   try {
     const nom = $('#nom').value.trim();
     if (nom) localStorage.setItem('qresto.nom', nom);
@@ -303,7 +309,9 @@ async function actionPrincipale() {
       })),
       nom,
       note: $('#note').value.trim(),
+      cleEnvoi,
     });
+    cleEnvoi = null;                            // panier suivant, nouvelle clé
     afficherConfirmation(cmd);
   } catch (e) {
     erreur(Store.messageErreur(e));

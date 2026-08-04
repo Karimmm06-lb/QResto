@@ -222,9 +222,30 @@ gain imperceptible.
 
 ## Décisions non ouvertes (phases ultérieures)
 
+### D10 — Idempotence par clé d'envoi
+**Type :** technique · **Statut :** arrêtée
+
+Le téléphone tire une clé au hasard par panier et la rejoue à l'identique en cas de
+nouvelle tentative. Une clé déjà connue fait renvoyer la commande existante.
+
+*Pourquoi :* sur une connexion lente, le client appuie sur « Envoyer », ne voit rien se
+passer, et appuie de nouveau. Le restaurant produit deux fois et perd la différence. Ce
+n'est pas un cas théorique : c'est le comportement normal d'un client pressé.
+
+*Pourquoi le bouton désactivé ne suffit pas :* il ne protège ni d'un rechargement de page,
+ni d'un renvoi automatique par le réseau, ni d'un retour arrière. La garantie doit être en
+base.
+
+*Détail d'implémentation :* le contrôle est placé après la résolution de la table mais
+avant toute écriture — une clé rejouée ne doit ni consommer un numéro de commande, ni
+prolonger la session.
+
+*Vérifié :* trois envois consécutifs avec la même clé produisent une seule commande.
+
+---
+
 | ID | Sujet | Phase |
 |---|---|---|
-| D10 | Idempotence des envois sur réseau instable | 3 |
 | D11 | Numérotation sous concurrence — *traitée dans le schéma* | 3 |
 | D12 | Coupure internet pendant le service | 3 |
 | D13 | Panne d'imprimante : plan de repli | 3 |

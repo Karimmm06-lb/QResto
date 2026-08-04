@@ -95,10 +95,16 @@ const Store = (() => {
     },
 
     // ------------------------------------------------------------- client
-    async creerCommande({ qrToken, lignes, nom, note }) {
+    // D10 : la clé d'envoi est tirée par le téléphone et rejouée à l'identique
+    // en cas de nouvelle tentative. Si la commande est déjà passée, la base
+    // renvoie celle-ci au lieu d'en créer une seconde. Le bouton désactivé ne
+    // suffit pas : il ne protège ni d'un rechargement ni d'un renvoi réseau.
+    async creerCommande({ qrToken, lignes, nom, note, cleEnvoi }) {
       await init();
       const { data, error } = await sb.rpc('creer_commande', {
-        p_qr_token: qrToken, p_lignes: lignes, p_nom: nom || null, p_note: note || null,
+        p_qr_token: qrToken, p_lignes: lignes,
+        p_nom: nom || null, p_note: note || null,
+        p_cle_envoi: cleEnvoi || crypto.randomUUID(),
       });
       if (error) throw error;
       return data;

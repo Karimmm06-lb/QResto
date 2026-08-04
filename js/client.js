@@ -22,6 +22,31 @@ const descPlat = p => p[`desc_${lang}`] || p.desc_fr || '';
 const nomVar = v => v[`libelle_${lang}`] || v.libelle_fr;
 const estStandard = v => v.libelle_fr === 'Standard';
 
+/* Faute de photos réelles, chaque plat reçoit un visuel dérivé de sa
+   catégorie. C'est un pis-aller assumé : il casse l'effet « mur de texte »
+   sans faire croire au client qu'il voit le plat qu'il commande.
+   Le champ image_url reste prioritaire dès qu'une vraie photo existe. */
+const VISUELS = [
+  [/pizza|calzone/i,        '🍕'],
+  [/burger/i,               '🍔'],
+  [/sandwich|panini/i,      '🥪'],
+  [/tacos|wrap/i,           '🌯'],
+  [/gratin/i,               '🧀'],
+  [/tender|wing|poulet/i,   '🍗'],
+  [/crêpe|crepe/i,          '🥞'],
+  [/dessert|glace/i,        '🍰'],
+  [/boisson|jus|café/i,     '🥤'],
+  [/salade/i,               '🥗'],
+  [/plat|assiette|steak/i,  '🍽️'],
+];
+
+function visuel(plat) {
+  const cat = menu.categories.find(c => c.id === plat.categorie_id);
+  const texte = `${cat?.nom_fr || ''} ${plat.nom_fr}`;
+  const trouve = VISUELS.find(([re]) => re.test(texte));
+  return trouve ? trouve[1] : '🍴';
+}
+
 function trouverVariante(vid) {
   for (const p of [...menu.plats, ...menu.supplements]) {
     const v = p.variantes_plat.find(x => x.id === vid);
@@ -85,11 +110,18 @@ function rendrePlats() {
         </span></div>`;
     }).join('');
 
+    const vignette = p.image_url
+      ? `<img class="pic" src="${p.image_url}" alt="${nomPlat(p)}" loading="lazy">`
+      : `<div class="pic">${visuel(p)}</div>`;
+
     return `<div class="card dish ${p.disponible ? '' : 'epuise'}">
-      <div class="info">
-        <div class="name">${nomPlat(p)}
-          ${p.disponible ? '' : `<span class="chip payee">${t('epuise')}</span>`}</div>
-        ${descPlat(p) ? `<div class="desc">${descPlat(p)}</div>` : ''}
+      <div class="entete">
+        ${vignette}
+        <div class="info">
+          <div class="name">${nomPlat(p)}
+            ${p.disponible ? '' : `<span class="chip payee">${t('epuise')}</span>`}</div>
+          ${descPlat(p) ? `<div class="desc">${descPlat(p)}</div>` : ''}
+        </div>
       </div>
       <div class="variantes">${rows}</div>
     </div>`;

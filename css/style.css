@@ -111,7 +111,16 @@ h2 { font-size: 17px; margin: 24px 0 10px; }
 
 /* ---------- déclinaisons (D5) ---------- */
 .dish { display: block; }
-.dish .info { margin-bottom: 10px; }
+.dish .entete { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+.dish .info { flex: 1; min-width: 0; }
+.dish .pic {
+  width: 56px; height: 56px; flex: 0 0 56px;
+  display: grid; place-items: center; font-size: 27px;
+  border-radius: 12px; object-fit: cover;
+  background: linear-gradient(140deg, #2b3140, #1b1f28);
+  border: 1px solid var(--border);
+}
+[dir="rtl"] .dish .entete { flex-direction: row-reverse; }
 .dish.epuise { opacity: 0.5; }
 .variantes { display: grid; gap: 6px; }
 .vrow { display: flex; align-items: center; gap: 10px; }

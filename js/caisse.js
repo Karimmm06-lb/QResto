@@ -60,9 +60,8 @@ function carteCommande(c) {
   return `<div class="cmd">
     <div class="chead">
       <span class="conv">${c.nom_convive || 'Sans nom'}</span>
-      <span class="num" style="color:var(--muted);font-size:13px">
-        N°${c.numero} · ${fmt.heure(c.cree_le)} · ${fmt.depuis(c.cree_le)}</span>
-      <span class="spacer" style="flex:1"></span>
+      <span class="num">N°${c.numero} · ${fmt.heure(c.cree_le)} · ${fmt.depuis(c.cree_le)}</span>
+      <span class="spacer"></span>
       <span class="chip ${c.statut}">${LIB[c.statut]}</span>
     </div>
     <ul>${lignesHierarchisees(c).map(l =>
@@ -84,10 +83,10 @@ function carteTable(s) {
   return `<div class="card tablecard">
     <div class="thead">
       <span class="tnum">Table ${s.tables_resto.numero}</span>
-      <span style="color:var(--muted);font-size:13px">
+      <span class="tmeta">
         ${actives.length} commande${actives.length > 1 ? 's' : ''} · ouverte ${fmt.depuis(s.ouverte_le)}</span>
-      <span class="spacer" style="flex:1"></span>
-      <span style="font-weight:800;font-size:18px">${fmt.prix(s.total)}</span>
+      <span class="spacer"></span>
+      <span class="ttot">${fmt.prix(s.total)}</span>
     </div>
     ${cmds.map(carteCommande).join('')}
     <div class="actions" style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">

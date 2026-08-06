@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>QResto — Commander</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=2">
 </head>
 <body>
   <header class="topbar">
@@ -22,7 +22,7 @@
 
   <main class="wrap narrow">
     <div id="menuView">
-      <div class="cats" id="cats"></div>
+      <div class="catsWrap"><div class="cats" id="cats"></div></div>
       <div class="grid" id="dishes"></div>
     </div>
     <div id="panierView" style="display:none"></div>
@@ -32,17 +32,17 @@
   <div class="cartbar" id="cartbar" style="display:none">
     <div class="inner">
       <div>
-        <div style="font-size:13px;color:var(--muted)" id="cartCount"></div>
-        <div style="font-weight:800;font-size:18px" id="cartTotal"></div>
+        <div class="cnt" id="cartCount"></div>
+        <div class="tot" id="cartTotal"></div>
       </div>
       <div class="spacer"></div>
       <button class="btn" id="sendBtn"></button>
     </div>
   </div>
 
-  <script src="js/config.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/store.js"></script>
-  <script src="js/client.js"></script>
+  <script src="js/config.js?v=2"></script>
+  <script src="js/data.js?v=2"></script>
+  <script src="js/store.js?v=2"></script>
+  <script src="js/client.js?v=2"></script>
 </body>
 </html>

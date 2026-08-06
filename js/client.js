@@ -5,7 +5,7 @@ const qrToken = new URLSearchParams(location.search).get('t');
 let lang = localStorage.getItem('qresto.lang') || 'fr';
 let ctx = null;          // restaurant, numéro de table
 let menu = null;         // catégories + plats + suppléments
-let cat = 'all';
+let cat = null;          // fixée à la première catégorie au chargement
 let vue = 'menu';        // menu | panier | confirmation
 let suivi = null;        // arrêt de l'interrogation (D22)
 let cleEnvoi = null;     // clé d'idempotence de la tentative en cours (D10)
@@ -86,10 +86,24 @@ const nbArticles = () => lignes().reduce((s, l) => s + l.qty, 0);
 
 // ------------------------------------------------------------------ menu
 function rendreCategories() {
-  const toutes = [{ id: 'all', nom_fr: 'Tout', nom_ar: 'الكل', nom_en: 'All' }, ...menu.categories];
-  $('#cats').innerHTML = toutes.map(c =>
-    `<button data-cat="${c.id}" class="${c.id === cat ? 'on' : ''}">${c[`nom_${lang}`] || c.nom_fr}</button>`
-  ).join('');
+  // « Tout » est placé en dernier et non en premier : sur une carte de treize
+  // catégories, l'ouvrir par défaut affiche cinquante-cinq plats d'affilée,
+  // soit douze écrans à faire défiler. Le client doit arriver sur une
+  // catégorie, pas sur un mur.
+  const toutes = [...menu.categories, { id: 'all', nom_fr: 'Tout', nom_ar: 'الكل', nom_en: 'All' }];
+
+  $('#cats').innerHTML = toutes.map(c => {
+    const n = c.id === 'all'
+      ? menu.plats.length
+      : menu.plats.filter(p => p.categorie_id === c.id).length;
+    return `<button data-cat="${c.id}" class="${c.id === cat ? 'on' : ''}">${
+      c[`nom_${lang}`] || c.nom_fr}<span class="cpt">${n}</span></button>`;
+  }).join('');
+
+  // Ramène l'onglet actif dans le champ de vision : sans cela, changer de
+  // langue ou revenir du panier laisse la barre positionnée n'importe où.
+  const actif = $('#cats button.on');
+  if (actif) actif.scrollIntoView({ block: 'nearest', inline: 'center' });
 }
 
 function rendrePlats() {
@@ -333,6 +347,7 @@ async function actionPrincipale() {
     ctx = await Store.contexteTable(qrToken);
     if (!ctx) throw new Error('Table inconnue');
     menu = await Store.menu(ctx.restaurant_id);
+    cat = menu.categories[0]?.id || 'all';
     $('#restoNom').textContent = ctx.restaurant;
     $('#sendBtn').onclick = actionPrincipale;
     setLang(lang);

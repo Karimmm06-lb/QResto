@@ -112,8 +112,16 @@ de lui.
 | Exploitation | Un seul compte, un seul jeu de QR codes, un seul menu à maintenir |
 | Commercial | Toute l'attention sur un établissement jusqu'à la preuve d'usage |
 
-**Candidats retenus** (Aïn Benian, Alger) : Black & Silver et Spicy Max. Leurs cartes sont
-déjà chargées dans le système, 110 plats au total.
+### Établissement retenu
+
+**Black & Silver** — Aïn Benian, Alger. Tél. 0557 89 53 31, ouvert 11 h 30 – 1 h
+(18 h 30 – 1 h le vendredi), 3 800 abonnés sur Facebook.
+
+Sa carte est déjà chargée : 13 catégories, 55 plats, 17 suppléments, avec des
+déclinaisons de taille sur les pizzas. C'est la carte la plus riche des candidats, donc
+le meilleur test : si le système tient chez eux, il tient partout.
+
+Spicy Max reste en second choix, sa carte est chargée à 38 plats.
 
 ---
 

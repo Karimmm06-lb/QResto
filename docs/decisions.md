@@ -8,6 +8,86 @@ tranchée n'est pas rouverte sans motif explicite.
 
 ---
 
+## Recadrage — version 2 du cahier des charges
+
+### E0 — Système de commande et site vitrine séparés
+**Type :** produit · **Statut :** arrêtée
+
+Deux produits distincts. Le système de commande est autonome et ne suppose l'existence
+d'aucun site. Règle de dépendance : **le site peut pointer vers la carte, la carte ne
+dépend jamais du site.**
+
+*Pourquoi :* la plupart des restaurants ciblés n'ont aucun site — leur présence en ligne
+se limite à une page Facebook, parfois à rien. Un système de commande qui en supposerait
+un ne serait vendable à personne. Ce sont par ailleurs deux métiers et deux prix, et un
+site en panne ne doit jamais empêcher de commander.
+
+*Conséquence :* le QR mène **directement** à la commande, jamais à une page d'accueil
+intermédiaire. Un client qui scanne veut commander, pas naviguer.
+
+---
+
+### E-pilote — Black & Silver comme établissement unique
+**Type :** produit · **Statut :** arrêtée
+
+Un seul restaurant jusqu'à ce qu'un service complet ait tourné sans incident.
+
+*Pourquoi Black & Silver :* la carte la plus riche des candidats (13 catégories,
+55 plats, 17 suppléments, déclinaisons de taille). Si le système tient chez eux, il tient
+partout.
+
+*Pourquoi un seul :* un deuxième client avant que le premier ne tourne, c'est deux fois
+les mêmes défauts à corriger et deux restaurateurs déçus, au lieu d'un client satisfait
+qui en parle autour de lui.
+
+*Ce qui ne change pas :* le modèle de données reste cloisonné par restaurant. Le
+cloisonnement est déjà écrit et vérifié ; le retirer coûterait plus cher que le garder.
+Cibler un établissement est un choix d'exploitation, pas d'architecture.
+
+---
+
+### E1 — Les formules restent des plats simples
+**Type :** métier · **Statut :** arrêtée
+
+Une formule (le « Happy Meal » à 500 DA : cheese + petite frite + jus) est un article à
+prix fixe, sa composition figurant dans la description.
+
+*Pourquoi :* la formule composable — choisir son plat, sa boisson, son accompagnement
+dans des groupes imposés — est le plus gros chantier restant, et une seule formule
+existe sur la carte du pilote. Le construire maintenant serait devancer un besoin que
+personne n'a exprimé.
+
+*Limite acceptée :* le ticket cuisine n'énumère pas les composants, et le client ne
+choisit pas sa boisson.
+
+*À rouvrir si :* le restaurant pilote ajoute des formules, ou si le personnel doit
+demander oralement le choix de boisson à chaque commande.
+
+---
+
+### E2 — Sur place uniquement
+**Type :** produit · **Statut :** arrêtée
+
+Le système ne gère que la consommation sur place. L'à emporter continue de se commander
+au comptoir.
+
+*Pourquoi :* le QR est posé sur une table — celui qui le scanne est assis. Introduire
+l'à emporter casserait la session de table (il n'y a pas de table à encaisser) et
+imposerait un dispositif de remise par numéro d'appel.
+
+---
+
+### E3 — Pas d'écran d'appel
+**Type :** produit · **Statut :** arrêtée
+
+Le serveur apporte le plat à la table ; le prénom sur le ticket identifie le destinataire.
+
+*Pourquoi :* un écran d'appel suppose que le client se déplace pour récupérer sa
+commande, ce qui n'est pas l'usage visé. Il n'aurait de sens qu'avec l'à emporter, écarté
+en E2.
+
+---
+
 ## Décisions arrêtées
 
 ### D1 — Unité de facturation : la session de table

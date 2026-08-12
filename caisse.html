@@ -4,14 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>QResto — Caisse</title>
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <link rel="stylesheet" href="css/style.css?v=4">
 </head>
 <body class="caisse">
   <header class="topbar" id="barre" style="display:none">
     <div class="brand">Q<span>Resto</span></div>
     <div class="badge">🧾 Caisse</div>
     <div class="spacer"></div>
-    <span id="live" class="chip prete">● en direct</span>
+    <label class="switch"><input type="checkbox" id="swEmporter"> 🥡 À emporter</label>
+    <label class="switch"><input type="checkbox" id="swLivraison"> 🛵 Livraison</label>
     <button class="btn sm ghost" id="soundBtn">🔔 Son</button>
     <button class="btn sm ghost" id="clotureBtn">📅 Clôturer</button>
     <button class="btn sm ghost" id="logoutBtn">Déconnexion</button>
@@ -32,13 +33,19 @@
 
   <main class="wrap" id="appView" style="display:none">
     <div class="stats" style="margin-top:18px">
+      <div class="card stat"><div class="v" id="kConfirmer">0</div><div class="k">À confirmer</div></div>
       <div class="card stat"><div class="v" id="kNew">0</div><div class="k">À imprimer</div></div>
       <div class="card stat"><div class="v" id="kKitchen">0</div><div class="k">En cuisine</div></div>
-      <div class="card stat"><div class="v" id="kReady">0</div><div class="k">Prêtes</div></div>
       <div class="card stat"><div class="v" id="kCash">0 DA</div><div class="k">À encaisser</div></div>
     </div>
 
-    <h2>Tables en cours</h2>
+    <h2>📞 Commandes à distance</h2>
+    <p class="sub" style="margin-top:-6px">
+      Appelez le client avant de confirmer : rien ne part en cuisine sans cet appel.
+    </p>
+    <div class="orders" id="distance"></div>
+
+    <h2>🍽️ Tables en cours</h2>
     <p class="sub" style="margin-top:-6px">
       Une table affichée ici sans clients à cet emplacement signale une commande frauduleuse : annulez-la.
     </p>
@@ -47,9 +54,9 @@
 
   <div id="ticket"></div>
 
-  <script src="js/config.js?v=2"></script>
-  <script src="js/data.js?v=2"></script>
-  <script src="js/store.js?v=2"></script>
-  <script src="js/caisse.js?v=2"></script>
+  <script src="js/config.js?v=4"></script>
+  <script src="js/data.js?v=4"></script>
+  <script src="js/store.js?v=4"></script>
+  <script src="js/caisse.js?v=4"></script>
 </body>
 </html>

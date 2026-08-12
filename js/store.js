@@ -159,11 +159,16 @@ const Store = (() => {
       await init();
       const { data, error } = await sb
         .from('sessions')
-        .select('*, tables_resto(numero), commandes(*, lignes_commande(*))')
+        .select('*, tables_resto(numero), zones_livraison(nom), commandes(*, lignes_commande(*))')
         .in('statut', ['ouverte', 'a_payer'])
         .order('ouverte_le', { ascending: false });
       if (error) throw error;
-      return data;
+      // Deux flux distincts à l'écran : les tables d'un côté, les commandes à
+      // distance de l'autre. Ce ne sont pas les mêmes gestes ni la même urgence.
+      return {
+        tables:   data.filter(s => s.mode === 'sur_place'),
+        distance: data.filter(s => s.mode !== 'sur_place'),
+      };
     },
 
     async sessionsDuJour() {
@@ -235,6 +240,47 @@ const Store = (() => {
       const { data, error } = await sb.rpc('vitrine', { p_slug: slug });
       if (error) throw error;
       return data;
+    },
+
+    // ------------------------------------------------- commande à distance
+    // Le parcours par QR et le parcours à distance sont deux procédures
+    // distinctes : le premier n'a ni téléphone, ni adresse, ni zone, et ne
+    // doit pas être alourdi par des paramètres qui ne le concernent pas.
+    async creerCommandeDistance({ slug, mode, lignes, nom, telephone,
+                                  adresse, zoneId, heure, note, cleEnvoi }) {
+      await init();
+      const { data, error } = await sb.rpc('creer_commande_distance', {
+        p_restaurant_slug: slug, p_mode: mode, p_lignes: lignes,
+        p_nom: nom, p_telephone: telephone,
+        p_adresse: adresse || null, p_zone_id: zoneId || null,
+        p_heure_souhaitee: heure || null, p_note: note || null,
+        p_cle_envoi: cleEnvoi || crypto.randomUUID(),
+      });
+      if (error) throw error;
+      return data;
+    },
+
+    // Le caissier appelle le client, puis confirme. C'est l'acte qui autorise
+    // la production : rien ne part en cuisine avant cet appel.
+    async confirmerCommande(commandeId) {
+      await init();
+      const { error } = await sb.rpc('confirmer_commande', { p_commande_id: commandeId });
+      if (error) throw error;
+    },
+
+    async marquerEnLivraison(commandeId) {
+      await init();
+      const { error } = await sb.rpc('marquer_en_livraison', { p_commande_id: commandeId });
+      if (error) throw error;
+    },
+
+    // Interrupteurs manuels : le caissier coupe les commandes à distance quand
+    // la cuisine sature ou que le service se termine.
+    async basculerMode(restaurantId, champ, actif) {
+      await init();
+      const { error } = await sb.from('restaurants')
+        .update({ [champ]: actif }).eq('id', restaurantId);
+      if (error) throw error;
     },
 
     async restaurant(restaurantId) {

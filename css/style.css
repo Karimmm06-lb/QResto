@@ -291,6 +291,18 @@ input:focus, textarea:focus {
 }
 .actions, .cmd .actions { display: flex; gap: 7px; flex-wrap: wrap; }
 
+/* Interrupteurs des commandes à distance, dans la barre de la caisse. */
+.switch {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 999px;
+  border: 1px solid var(--bord); background: var(--surface);
+  font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer;
+}
+.switch input { width: auto; padding: 0; margin: 0; accent-color: var(--accent); }
+.switch:has(input:checked) {
+  background: var(--vert-pale); border-color: var(--vert); color: var(--vert);
+}
+
 /* ------------------------------------------------------------ statistiques */
 .stats { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); }
 .stat .v { font-size: 26px; font-weight: 800; letter-spacing: -1px; font-variant-numeric: tabular-nums; }

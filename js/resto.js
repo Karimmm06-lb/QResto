@@ -23,6 +23,17 @@ let cleEnvoi = null;      // idempotence (D10)
 const $ = s => document.querySelector(s);
 const page = () => $('#page');
 
+// Photos d'illustration par catégorie. Ce sont de vraies photos du restaurant.
+// Aucune n'est associée à un plat précis (impossible de savoir quelle pizza est
+// sur quelle photo) : ce sont des visuels de section, pas de plat. En
+// production, le restaurant fournit ses propres fichiers.
+const PHOTO_CAT = [
+  [/pizza/i,          'img/cat-pizza.jpg'],
+  [/burger/i,         'img/cat-burger.jpg'],
+  [/jus|mocktail|boisson|soif|milkshake/i, 'img/cat-boisson.jpg'],
+];
+const photoCategorie = nom => (PHOTO_CAT.find(([re]) => re.test(nom)) || [])[1];
+
 // ------------------------------------------------------------------ outils
 function plats() {
   return resto.carte.flatMap(c => c.plats.map(p => ({ ...p, categorie: c.nom })));
@@ -86,6 +97,7 @@ function rendreVitrine() {
 
   const carte = resto.carte.map(c => `
     <section class="vcat">
+      ${photoCategorie(c.nom) ? `<img class="vcat-photo" src="${photoCategorie(c.nom)}" alt="${c.nom}" loading="lazy">` : ''}
       <h2>${c.nom}</h2>
       ${c.plats.map(p => `
         <div class="vplat ${p.disponible ? '' : 'epuise'}">
@@ -99,7 +111,7 @@ function rendreVitrine() {
 
   page().innerHTML = `
     <div id="erreur" class="alerte"></div>
-    <header class="vhero">
+    <header class="vhero" style="--hero:url('img/hero.jpg')">
       <h1>${resto.nom}</h1>
       ${resto.slogan ? `<p class="vslogan">${resto.slogan}</p>` : ''}
       <p class="vinfo">

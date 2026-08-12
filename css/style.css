@@ -302,6 +302,48 @@ input:focus, textarea:focus {
 .bar .fill { display: block; height: 100%; border-radius: 999px; background: var(--accent); min-width: 3px; }
 .bar .n { flex: 0 0 70px; color: var(--texte-doux); font-size: 13px; font-variant-numeric: tabular-nums; }
 
+/* ------------------------------------------------------ vitrine publique */
+.vitrine .vhero {
+  text-align: center; padding: 46px 20px 34px;
+  background: linear-gradient(160deg, var(--accent), var(--accent-fonce));
+  color: #fff;
+}
+.vitrine .vhero h1 { font-size: 34px; margin: 0; letter-spacing: -1px; }
+.vitrine .vslogan { margin: 4px 0 14px; opacity: .92; font-size: 16px; }
+.vitrine .vinfo { margin: 0 0 18px; font-size: 14.5px; opacity: .92; line-height: 1.7; }
+.vitrine .vliens { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.vitrine .vliens .btn { background: #fff; color: var(--accent-fonce); text-decoration: none; }
+.vitrine .vliens .btn.ghost {
+  background: rgba(255,255,255,.14); color: #fff; border-color: rgba(255,255,255,.5);
+}
+
+/* L'argument de vente du système de commande, sur la page publique. */
+.vitrine .vqr {
+  max-width: 620px; margin: -18px auto 26px; padding: 16px 18px;
+  background: var(--surface); border: 1px solid var(--bord);
+  border-radius: var(--r-lg); box-shadow: var(--ombre-fort); text-align: center;
+}
+.vitrine .vqr strong { display: block; margin-bottom: 4px; }
+.vitrine .vqr p { margin: 0; color: var(--texte-doux); font-size: 14px; line-height: 1.5; }
+
+.vitrine .vcat { margin-bottom: 26px; }
+.vitrine .vcat h2 {
+  font-size: 15px; text-transform: uppercase; letter-spacing: .6px;
+  color: var(--accent-fonce); border-bottom: 2px solid var(--bord);
+  padding-bottom: 6px; margin: 0 0 12px;
+}
+.vitrine .vplat { padding: 9px 0; border-bottom: 1px solid var(--bord); }
+.vitrine .vplat:last-child { border-bottom: none; }
+.vitrine .vplat.epuise { opacity: .5; }
+.vitrine .vnom { font-weight: 700; }
+.vitrine .vdesc { color: var(--texte-doux); font-size: 13.5px; line-height: 1.4; margin-top: 1px; }
+.vitrine .vprix { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
+.vitrine .vprix .p { font-weight: 800; font-variant-numeric: tabular-nums; }
+.vitrine .vprix .p i { font-style: normal; font-weight: 600; color: var(--texte-doux); font-size: 13px; }
+.vitrine .vpied {
+  text-align: center; color: var(--texte-doux); font-size: 13px; padding: 20px 0 40px;
+}
+
 /* -------------------------------------------------------- planche de QR */
 .feuille { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
 .chevalet {

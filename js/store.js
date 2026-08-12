@@ -227,6 +227,16 @@ const Store = (() => {
       return data;
     },
 
+    // Vitrine publique : un seul appel, aucune authentification.
+    // Lit la même carte que le système de commande — un prix modifié par le
+    // restaurateur apparaît immédiatement sur sa page publique.
+    async vitrine(slug) {
+      await init();
+      const { data, error } = await sb.rpc('vitrine', { p_slug: slug });
+      if (error) throw error;
+      return data;
+    },
+
     async restaurant(restaurantId) {
       await init();
       const { data, error } = await sb

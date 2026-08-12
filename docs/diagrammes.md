@@ -161,25 +161,39 @@ compter les ventes du restaurant.
 
 ## 5. États d'une commande
 
+Trois canaux, une machine à états commune. La commande **sur place** (arrivée par QR)
+naît en `nouvelle`. La commande **à distance** (à emporter, livraison) naît en
+`a_confirmer` : rien ne part en cuisine avant que le caissier ait appelé le client (R2).
+
 ```mermaid
 stateDiagram-v2
   direction LR
-  [*] --> nouvelle : envoi du client
+  [*] --> a_confirmer : envoi à distance
+  [*] --> nouvelle : envoi par QR (sur place)
+  a_confirmer --> nouvelle : caissier appelle + confirme
+  a_confirmer --> annulee : refus après appel
   nouvelle --> cuisine : impression du ticket
   nouvelle --> annulee : annulation simple
   cuisine --> prete : plat terminé
   cuisine --> annulee : annulation + motif (perte)
-  prete --> servie : remis au client
+  prete --> servie : remis / retiré
+  prete --> en_livraison : le livreur part
+  en_livraison --> servie : livré et payé
   prete --> annulee : annulation + motif (perte)
   servie --> [*]
   annulee --> [*]
 ```
 
-L'état `payee` **n'existe pas** sur la commande : c'est la session de table qui est payée.
+L'état `payee` **n'existe pas** sur la commande : c'est la session qui est payée.
+`en_livraison` n'apparaît que pour le mode livraison, et le passage à `servie` acte le
+retour du livreur avec l'espèce (R7).
 
 ---
 
-## 6. États d'une session de table
+## 6. États d'une session
+
+Une session sur place est liée à une table ; une session à distance n'en a pas mais porte
+nom, téléphone, adresse et zone. Même cycle de vie, même encaissement.
 
 ```mermaid
 stateDiagram-v2
@@ -195,6 +209,41 @@ stateDiagram-v2
 
 Les sessions expirées sont **conservées mais exclues du chiffre d'affaires** : ce sont des
 anomalies (client parti sans payer, oubli de clôture), pas des ventes.
+
+**Rétention (D16) :** sur une session close depuis plus de 7 jours, une tâche quotidienne
+efface nom, téléphone et adresse. Les montants et le journal d'audit restent — les
+statistiques n'ont besoin d'aucune donnée personnelle.
+
+---
+
+## 6bis. Séquence — commande en livraison
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor C as Client (chez lui)
+  participant W as Page publique
+  participant B as Base de données
+  participant K as Écran caisse
+  actor L as Livreur
+
+  C->>W: Choisit « livraison », compose son panier
+  W->>W: Filtre les plats non livrables (R6)
+  C->>W: Zone, adresse, téléphone, créneau
+  W->>B: creer_commande_distance(...)
+  B->>B: Vérifie zone, minimum, plats livrables
+  B-->>W: Numéro de commande + total (avec frais)
+  B-)K: Diffusion temps réel — statut « à confirmer »
+  K->>C: 📞 Appel de confirmation (R3)
+  K->>B: confirmer_commande()  → « nouvelle »
+  K->>B: marquer_imprimee()    → « cuisine »
+  Note over K: préparation
+  K->>B: changer_statut(prete)
+  K->>B: marquer_en_livraison() → « en livraison »
+  L->>C: Livre et encaisse l'espèce
+  L-->>K: De retour
+  K->>B: changer_statut(servie) + encaisser_session() (R7)
+```
 
 ---
 

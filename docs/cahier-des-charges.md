@@ -159,17 +159,32 @@ plus l'adoption est rapide.
 | F10 | Suivre l'état de sa commande jusqu'à ce qu'elle soit prête | Importante |
 | F11 | Commander de nouveau pendant le repas, sur la même addition | Vitale |
 
+### Parcours client à distance (R1–R7)
+
+| Réf. | Exigence | Priorité |
+|---|---|---|
+| F1b | Depuis la page publique, commander à emporter ou en livraison | Vitale |
+| F2b | Saisir nom et téléphone ; le restaurant appelle pour confirmer | Vitale |
+| F3b | En livraison, choisir sa zone et saisir son adresse | Vitale |
+| F4b | Voir les frais de livraison et le minimum de commande de sa zone | Vitale |
+| F5b | Choisir un créneau de retrait, ou « dès que possible » | Importante |
+| F6b | Ne voir que les plats livrables quand le mode est la livraison | Importante |
+
 ### Parcours caisse
 
 | Réf. | Exigence | Priorité |
 |---|---|---|
 | F12 | Recevoir les commandes en temps réel, avec alerte sonore | Vitale |
 | F13 | Voir les commandes **regroupées par table** | Vitale |
-| F14 | Imprimer un ticket pour la cuisine | Vitale |
+| F13b | Voir les commandes à distance dans un **flux séparé** | Vitale |
+| F13c | Appeler le client d'un geste, puis confirmer, avant toute production | Vitale |
+| F14 | Imprimer un ticket pour la cuisine, distinguant table / emporter / livraison | Vitale |
 | F15 | Réimprimer un ticket perdu | Importante |
 | F16 | Faire évoluer l'état d'une commande | Importante |
+| F16b | Marquer une livraison « partie », puis « livrée et payée » au retour du livreur | Importante |
 | F17 | Annuler une commande, avec motif si elle est lancée | Vitale |
 | F18 | Encaisser une table et connaître le montant dû | Vitale |
+| F18b | Couper les commandes à distance d'un interrupteur quand la cuisine sature | Importante |
 | F19 | Basculer un plat en « épuisé », visible immédiatement | Importante |
 
 ### Parcours gérant
@@ -210,9 +225,14 @@ plus l'adoption est rapide.
 | Compte client | Argument commercial : aucune inscription |
 | Écran en cuisine | Le cuisinier garde son ticket papier |
 | Notification au serveur | L'objectif est de le décharger, pas de lui ajouter du bruit |
-| Livraison à domicile | Hors du problème traité |
 | Gestion de stock | Aucun établissement cible ne tient d'inventaire |
-| **Site vitrine** | **Produit distinct, vendu séparément** |
+| Paiement en ligne du retrait/livraison | Le règlement reste en espèces, au retrait ou au livreur |
+
+> **Note d'évolution.** La livraison, initialement exclue (« hors du problème traité »),
+> a été **réintégrée** avec l'extension commande à distance (décisions R1–R7). Le système
+> couvre désormais trois modes : sur place par QR, à emporter, et livraison. Le site
+> vitrine reste un produit distinct, mais la page publique du restaurant sert désormais
+> aussi de canal de commande à distance — générée depuis la carte, sans travail éditorial.
 
 ---
 
@@ -235,15 +255,15 @@ Infrastructure gratuite. Aucun administrateur système côté restaurant.
 
 | Livrable | État |
 |---|---|
-| Interface client (carte, commande, suivi) | Réalisé |
-| Écran caisse temps réel | Réalisé |
+| Interface client par QR (carte, commande, suivi) | Réalisé |
+| Page publique + commande à distance (emporter, livraison) | Réalisé |
+| Écran caisse temps réel, deux flux (tables / à distance) | Réalisé |
 | Espace gérant (carte, ventes, QR) | Réalisé |
 | Planche de QR codes à imprimer | Réalisé |
-| Base de données, sécurité, temps réel | Réalisé et audité |
+| Base de données, sécurité, temps réel, rétention | Réalisé et audité |
 | Cahier des charges, analyse, conception | Ce document et `docs/` |
 | Diagrammes | `docs/diagrammes.md` |
 | Recette sur site pilote | **À faire** |
-| Site vitrine | **Hors périmètre** |
 
 ---
 

@@ -27,14 +27,21 @@ intermédiaire. Un client qui scanne veut commander, pas naviguer.
 
 ---
 
-### E-pilote — Black & Silver comme établissement unique
-**Type :** produit · **Statut :** arrêtée
+### E-pilote — Team Restaurant comme établissement unique
+**Type :** produit · **Statut :** arrêtée (révisée)
 
 Un seul restaurant jusqu'à ce qu'un service complet ait tourné sans incident.
 
-*Pourquoi Black & Silver :* la carte la plus riche des candidats (13 catégories,
-55 plats, 17 suppléments, déclinaisons de taille). Si le système tient chez eux, il tient
-partout.
+*Pilote retenu :* **Team Restaurant** (Aïn Benian). Restaurant à table avec service,
+ticket moyen élevé (entrecôte 2 400 DA, côte de bœuf 3 800 DA), 144 plats sur 16
+catégories, deux établissements, 28 000 abonnés Instagram et **aucun site web** — Google
+Maps propose lui-même « Ajouter un site Web ». Sa seule carte en ligne est une story
+Instagram datée de juillet 2025, aux prix déjà périmés : l'argument de vente s'écrit seul.
+
+*Pourquoi ce choix plutôt que Black & Silver :* Team Restaurant a une gamme et un ticket
+moyen bien supérieurs, ce qui décuple le gain d'une erreur d'attribution évitée. Ses
+tables sont déjà numérotées (chevalets visibles sur les photos), donc poser un carton QR
+ne bouscule aucune habitude. Black & Silver et Spicy Max restent chargés en second choix.
 
 *Pourquoi un seul :* un deuxième client avant que le premier ne tourne, c'est deux fois
 les mêmes défauts à corriger et deux restaurateurs déçus, au lieu d'un client satisfait
@@ -42,7 +49,9 @@ qui en parle autour de lui.
 
 *Ce qui ne change pas :* le modèle de données reste cloisonné par restaurant. Le
 cloisonnement est déjà écrit et vérifié ; le retirer coûterait plus cher que le garder.
-Cibler un établissement est un choix d'exploitation, pas d'architecture.
+Cibler un établissement est un choix d'exploitation, pas d'architecture. Team Restaurant
+ayant **deux adresses**, ce cloisonnement sert d'ailleurs directement : deux jeux de QR,
+deux cartes, une seule plateforme.
 
 ---
 
@@ -66,25 +75,139 @@ demander oralement le choix de boisson à chaque commande.
 ---
 
 ### E2 — Sur place uniquement
-**Type :** produit · **Statut :** arrêtée
+**Type :** produit · **Statut :** ⟲ ROUVERTE par R1 (voir plus bas)
 
-Le système ne gère que la consommation sur place. L'à emporter continue de se commander
-au comptoir.
+*Décision initiale (conservée pour mémoire) :* le système ne gérait que la consommation
+sur place, au motif que le QR est posé sur une table et que l'à emporter casserait la
+session de table.
 
-*Pourquoi :* le QR est posé sur une table — celui qui le scanne est assis. Introduire
-l'à emporter casserait la session de table (il n'y a pas de table à encaisser) et
-imposerait un dispositif de remise par numéro d'appel.
+*Pourquoi rouverte :* l'orientation commerciale a évolué vers un modèle « comme
+McDonald's » incluant la commande à distance. Le raisonnement d'origine tenait pour un
+QR sur table ; il ne s'oppose pas à un second canal distinct. Voir **R1**.
 
 ---
 
 ### E3 — Pas d'écran d'appel
-**Type :** produit · **Statut :** arrêtée
+**Type :** produit · **Statut :** arrêtée (toujours valide)
 
 Le serveur apporte le plat à la table ; le prénom sur le ticket identifie le destinataire.
 
 *Pourquoi :* un écran d'appel suppose que le client se déplace pour récupérer sa
-commande, ce qui n'est pas l'usage visé. Il n'aurait de sens qu'avec l'à emporter, écarté
-en E2.
+commande. Même avec la commande à distance (R1), la remise se fait au comptoir avec appel
+du client (R3), sans file d'attente devant un écran. La décision tient.
+
+---
+
+## Extension — commande à distance (rouvre E2)
+
+### R1 — Trois modes : sur place, à emporter, livraison
+**Type :** produit · **Statut :** arrêtée
+
+Le système gère désormais trois modes. Le QR sur table reste le canal principal
+(`sur_place`) ; deux canaux à distance s'ajoutent : `a_emporter` et `livraison`.
+
+*Pourquoi :* alignement sur le modèle McDonald's demandé — le client compose lui-même,
+qu'il soit à table ou chez lui. Le retrait préserve l'invariant du produit (paiement en
+caisse au retrait) ; la livraison a été retenue malgré son coût logistique sur décision
+explicite.
+
+*Ce que la commande à distance a fait tomber, et par quoi c'est remplacé :*
+- la session de table → session **sans table**, même unité de facturation ;
+- « le caissier voit la salle », seule défense anti-fraude de D3a → **l'appel
+  téléphonique** avant toute production (R2) ;
+- « aucune inscription » → exception assumée : **téléphone obligatoire** (R3).
+
+*Alternative écartée :* livraison seule, sans retrait — on aurait pris tous les risques
+logistiques sans avoir validé le parcours à distance sur le mode le plus simple.
+
+---
+
+### R2 — La commande à distance est validée par un appel
+**Type :** métier · **Statut :** arrêtée
+
+Une commande à distance naît au statut `a_confirmer`. Rien ne part en cuisine avant que
+le caissier ait appelé le client et confirmé. Réutilise la logique de
+`validation_requise` prévue en réserve dès D2.
+
+*Pourquoi :* à distance, il n'y a plus de salle à regarder. L'appel remplace le contrôle
+visuel : il confirme la commande, prouve que le numéro est réel et annonce le délai —
+trois fonctions en un seul geste, sans coût d'envoi de SMS.
+
+*Le parcours sur place reste instantané* : aucune validation ne s'y ajoute.
+
+---
+
+### R3 — Téléphone obligatoire, confirmation par appel
+**Type :** produit · **Statut :** arrêtée
+
+Une commande à distance exige nom et téléphone. Le caissier appelle systématiquement pour
+confirmer.
+
+*Pourquoi :* c'est le seul lien avec un client absent. Non vérifié par SMS — l'envoi coûte
+de l'argent, casse la promesse « aucune inscription » et fait abandonner en cours de
+commande, pour un risque que l'appel du caissier couvre déjà.
+
+*Conséquence sur les données personnelles :* on passe d'un simple prénom à nom +
+téléphone + adresse. Voir **D16**.
+
+---
+
+### R4 — Créneau de retrait au choix, dans la journée
+**Type :** produit · **Statut :** arrêtée
+
+Un seul menu déroulant dont la première entrée est « Dès que possible », suivie des quarts
+d'heure de la journée en cours, au plus tôt après le délai minimum du restaurant.
+
+*Pourquoi :* couvre le vrai besoin — « je passe en sortant du travail » — sans gérer de
+calendrier, de jours de fermeture ni de réservations pour le lendemain. Un seul contrôle,
+les deux usages.
+
+---
+
+### R5 — Frais de livraison par zone
+**Type :** métier · **Statut :** arrêtée
+
+Les frais ne sont pas fixes : chaque restaurant définit ses zones, chacune portant son
+tarif et son montant minimum de commande (table `zones_livraison`).
+
+*Pourquoi :* livrer à Cheraga ne coûte pas le même prix qu'à Aïn Benian. Un tarif unique
+serait soit déficitaire sur les zones lointaines, soit dissuasif sur les proches. Le
+minimum par zone évite qu'un livreur traverse la ville pour un soda.
+
+---
+
+### R6 — Plats non livrables
+**Type :** métier · **Statut :** arrêtée
+
+La colonne `plats.livrable` (vraie par défaut) retire du parcours à distance les plats
+qui ne supportent pas le transport.
+
+*Pourquoi :* imposé par la carte réelle de Team Restaurant. Personne ne fait livrer une
+entrecôte à cuisson précise, un affogato ou un milkshake. Sans ce filtre, le site
+promettrait au client des plats que la cuisine ne peut pas tenir, et c'est le restaurant
+qui prendrait la réclamation. Filtre appliqué aux modes `a_emporter` et `livraison`,
+jamais au sur place. La règle vit en base : l'interface masque, elle ne garantit pas.
+
+---
+
+### R7 — Encaissement de la livraison par le caissier
+**Type :** métier · **Statut :** arrêtée
+
+Le livreur rapporte l'espèce ; le caissier marque « livrée et payée » à son retour. Statut
+`en_livraison` intercalé entre `prete` et `servie`.
+
+*Pourquoi :* aucun outil à installer pour le livreur, aucune formation, aucun quatrième
+utilisateur. Le décalage entre le départ en livraison et l'encaissement reste visible à
+l'écran — le restaurateur garde la traçabilité de son argent.
+
+---
+
+### E1 — Formules : point rouvert par la carte de Team Restaurant ?
+**Type :** métier · **Statut :** arrêtée (inchangée)
+
+La carte de Team Restaurant ne comporte pas de formule composable. E1 reste donc valide :
+les rares menus enfants ou formules sont des plats à prix fixe. À rouvrir seulement si le
+pilote en ajoute.
 
 ---
 
@@ -324,15 +447,42 @@ prolonger la session.
 
 ---
 
-| ID | Sujet | Phase |
-|---|---|---|
-| D11 | Numérotation sous concurrence — *traitée dans le schéma* | 3 |
-| D12 | Coupure internet pendant le service | 3 |
-| D13 | Panne d'imprimante : plan de repli | 3 |
-| D14 | Saisie initiale du menu et intégration d'un restaurant | 6 |
-| D15 | Contrat d'API et versionnement du menu | 3 |
-| D16 | Rétention des données, purge du prénom | 3 |
-| D17 | Journal d'audit — *traité dans le schéma* | 3 |
-| D18 | Sur place, à emporter | 6 |
-| D19 | Modèle économique | 6 |
-| D20 | Limitation de débit et protection anti-spam | 5 |
+### D16 — Rétention : purger l'identité, conserver les montants
+**Type :** technique · **Statut :** arrêtée
+
+Une tâche quotidienne (`purger_donnees_personnelles`) efface nom, téléphone et adresse des
+sessions closes depuis plus de 7 jours, ainsi que le prénom des convives sur place. Les
+totaux, les libellés de plats et le journal d'audit restent intacts.
+
+*Pourquoi maintenant :* R3 a fait passer la donnée personnelle d'un simple prénom à
+nom + téléphone + adresse du domicile. Conserver indéfiniment l'adresse de tous les
+clients d'un restaurant est un risque inutile — ces données ne servent que le temps du
+service.
+
+*Pourquoi 7 jours :* laisse le temps de traiter une réclamation client (« ma commande
+n'est jamais arrivée ») avant l'effacement.
+
+*Conflit résolu au passage :* la contrainte `sessions_coherence_mode`, qui imposait une
+adresse à toute livraison, entrait en conflit avec la purge. Elle a été restreinte aux
+sessions **actives** — une session close peut voir son adresse effacée.
+
+*Vérifié :* après purge, zéro identité restante sur les sessions closes, chiffre
+d'affaires conservé.
+
+---
+
+| ID | Sujet | Phase | Statut |
+|---|---|---|---|
+| D11 | Numérotation sous concurrence | 3 | ✅ schéma |
+| D12 | Coupure internet pendant le service | terrain | ⏳ ouvert |
+| D13 | Panne d'imprimante : plan de repli | terrain | ⏳ ouvert |
+| D14 | Saisie initiale du menu et intégration | 6 | ✅ `importer_restaurant` |
+| D15 | Contrat d'API et versionnement du menu | 3 | ⏳ ouvert |
+| D16 | Rétention des données personnelles | 3 | ✅ arrêtée |
+| D17 | Journal d'audit | 3 | ✅ schéma |
+| D18 | À emporter et livraison | — | ✅ voir R1 |
+| D19 | Modèle économique | 6 | ⏳ ouvert |
+| D20 | Limitation de débit et anti-spam | 5 | ⏳ ouvert |
+| D21 | Expiration des sessions | 3 | ✅ arrêtée |
+| D22 | Suivi client par interrogation | 3 | ✅ arrêtée |
+| R1–R7 | Commande à distance | — | ✅ arrêtées |

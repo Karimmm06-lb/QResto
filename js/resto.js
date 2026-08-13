@@ -27,12 +27,22 @@ const page = () => $('#page');
 // Aucune n'est associée à un plat précis (impossible de savoir quelle pizza est
 // sur quelle photo) : ce sont des visuels de section, pas de plat. En
 // production, le restaurant fournit ses propres fichiers.
+// Pas de photo pour Pizzas : le hero de la page est déjà la photo des pizzas
+// (napoletanas au feu de bois), la répéter en tête de section fait doublon.
 const PHOTO_CAT = [
-  [/pizza/i,          'img/pizzas.jpg'],
   [/burger/i,         'img/burgers.jpg'],
-  [/jus|mocktail|boisson|soif|milkshake/i, 'img/boissons.jpg'],
+  [/jus|mocktail|soif|milkshake/i, 'img/boissons.jpg'],   // pas « boisson » : matche « Boissons chaudes » (café/thé)
 ];
-const photoCategorie = nom => (PHOTO_CAT.find(([re]) => re.test(nom)) || [])[1];
+// Une photo n'apparaît qu'à sa première section : mêmes sous-catégories
+// (Pizzas rouges, Pizzas crème, Calzones… ou Jus, Petite soif, Milkshakes)
+// tombent sur la même photo, la répéter fait doublon en scrollant.
+const PHOTOS_UTILISEES = new Set();
+const photoCategorie = nom => {
+  const src = (PHOTO_CAT.find(([re]) => re.test(nom)) || [])[1];
+  if (!src || PHOTOS_UTILISEES.has(src)) return null;
+  PHOTOS_UTILISEES.add(src);
+  return src;
+};
 
 // ------------------------------------------------------------------ outils
 function plats() {
@@ -116,9 +126,11 @@ function rendreVitrine() {
     }
   });
 
-  const carte = resto.carte.map(c => `
+  const carte = resto.carte.map(c => {
+    const photo = photoCategorie(c.nom);   // un seul appel — la dédup consomme l'entrée
+    return `
     <section class="vcat reveal">
-      ${photoCategorie(c.nom) ? `<img class="vcat-photo" src="${photoCategorie(c.nom)}" alt="${c.nom}" loading="lazy">` : ''}
+      ${photo ? `<img class="vcat-photo" src="${photo}" alt="${c.nom}" loading="lazy">` : ''}
       <h2>${c.nom}</h2>
       ${c.plats.map(p => `
         <div class="vplat ${p.disponible ? '' : 'epuise'}">
@@ -131,7 +143,8 @@ function rendreVitrine() {
           </div>
           ${p.description ? `<div class="vdesc">${p.description}</div>` : ''}
         </div>`).join('')}
-    </section>`).join('');
+    </section>`;
+  }).join('');
 
   page().innerHTML = `
     <div id="erreur" class="alerte"></div>

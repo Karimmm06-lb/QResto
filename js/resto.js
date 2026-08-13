@@ -23,15 +23,16 @@ let cleEnvoi = null;      // idempotence (D10)
 const $ = s => document.querySelector(s);
 const page = () => $('#page');
 
-// Photos d'illustration par catégorie. Ce sont de vraies photos du restaurant.
-// Aucune n'est associée à un plat précis (impossible de savoir quelle pizza est
-// sur quelle photo) : ce sont des visuels de section, pas de plat. En
-// production, le restaurant fournit ses propres fichiers.
+// Photos d'illustration par catégorie. Placeholders professionnels (Unsplash)
+// pour la démo : à remplacer par les vraies photos du restaurant en production.
 // Pas de photo pour Pizzas : le hero de la page est déjà la photo des pizzas
 // (napoletanas au feu de bois), la répéter en tête de section fait doublon.
 const PHOTO_CAT = [
-  [/burger/i,         'img/burgers.jpg'],
-  [/jus|mocktail|soif|milkshake/i, 'img/boissons.jpg'],   // pas « boisson » : matche « Boissons chaudes » (café/thé)
+  [/viande/i,                'img/viandes.jpg'],
+  [/pâte|pate|pasta/i,       'img/pates.jpg'],
+  [/burger/i,                'img/burgers.jpg'],
+  [/jus|mocktail/i,          'img/boissons.jpg'],   // pas « boisson » : matcherait « Boissons chaudes » (café/thé)
+  [/glace|gelato/i,          'img/glaces.jpg'],
 ];
 // Une photo n'apparaît qu'à sa première section : mêmes sous-catégories
 // (Pizzas rouges, Pizzas crème, Calzones… ou Jus, Petite soif, Milkshakes)

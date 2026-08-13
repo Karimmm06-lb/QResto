@@ -71,7 +71,7 @@ async function rendreDisponibilite() {
 
 async function rendreQr() {
   const tables = await Store.tables(restaurantId);
-  const base = location.href.replace(/admin\.html.*$/, '') + 'client.html?t=';
+  const base = location.href.replace(/admin\.html.*$/, '') + 'resto.html?t=';
   $('#qrs').innerHTML = tables.map(t => {
     const url = base + t.qr_token;
     const src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data='

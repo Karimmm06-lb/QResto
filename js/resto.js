@@ -1,42 +1,39 @@
-/* Page publique du restaurant : vitrine et commande à distance.
+/* Page publique du restaurant : vitrine ET point d'atterrissage du QR de table.
 
-   Sous-produit du système de commande, pas un second projet — la carte
-   affichée est celle de la base. Le restaurateur change un prix dans son
-   espace gérant, sa page publique suit dans la seconde.
+   Un seul fichier gère les deux entrées :
+     • lien direct (?r=slug)      → mode à distance uniquement (emporter/livraison)
+     • scan du QR (?t=jeton)      → mode sur place + à distance si activés
+   Le contexte est déterminé au démarrage : si un jeton est présent, on charge
+   la carte via `vitrine_par_jeton` (qui renvoie aussi le numéro de table) ;
+   sinon on tombe sur `vitrine(slug)` comme avant.
 
-   Le QR posé sur les tables ne passe jamais par ici : il mène directement à
-   `client.html`. Retirer cette page ne casse aucun QR code (E0).
+   Trois vues successives dans la même page :
+     vitrine       → la carte en consultation + boutons de commande
+     commande      → la même carte, mais avec des boutons d'ajout
+     coordonnees   → le formulaire (allégé pour sur place : ni tel, ni adresse)
+     confirmation  → le récapitulatif                                            */
 
-   Trois vues successives, un seul fichier :
-     vitrine  → la carte en consultation, plus deux boutons de commande
-     commande → la même carte, mais avec des boutons d'ajout
-     coordonnees / confirmation → le formulaire, puis le récapitulatif       */
-
-const slug = new URLSearchParams(location.search).get('r');
+const params = new URLSearchParams(location.search);
+const slug    = params.get('r');
+const qrToken = params.get('t');
 
 let resto = null;
-let vue = 'vitrine';      // vitrine | commande | coordonnees | confirmation
-let mode = null;          // a_emporter | livraison
-let panier = {};          // { [varianteId]: { qty, nom, prix, plat } }
-let cleEnvoi = null;      // idempotence (D10)
+let tableNumero = null;   // renseigné uniquement si arrivée par QR
+let vue = 'vitrine';       // vitrine | commande | coordonnees | confirmation
+let mode = null;           // sur_place | a_emporter | livraison
+let panier = {};
+let cleEnvoi = null;
 
 const $ = s => document.querySelector(s);
 const page = () => $('#page');
 
-// Photos d'illustration par catégorie. Placeholders professionnels (Unsplash)
-// pour la démo : à remplacer par les vraies photos du restaurant en production.
-// Pas de photo pour Pizzas : le hero de la page est déjà la photo des pizzas
-// (napoletanas au feu de bois), la répéter en tête de section fait doublon.
 const PHOTO_CAT = [
   [/viande/i,                'img/viandes.jpg'],
   [/pâte|pate|pasta/i,       'img/pates.jpg'],
   [/burger/i,                'img/burgers.jpg'],
-  [/jus|mocktail/i,          'img/boissons.jpg'],   // pas « boisson » : matcherait « Boissons chaudes » (café/thé)
+  [/jus|mocktail/i,          'img/boissons.jpg'],
   [/glace|gelato/i,          'img/glaces.jpg'],
 ];
-// Une photo n'apparaît qu'à sa première section : mêmes sous-catégories
-// (Pizzas rouges, Pizzas crème, Calzones… ou Jus, Petite soif, Milkshakes)
-// tombent sur la même photo, la répéter fait doublon en scrollant.
 const PHOTOS_UTILISEES = new Set();
 const photoCategorie = nom => {
   const src = (PHOTO_CAT.find(([re]) => re.test(nom)) || [])[1];
@@ -50,11 +47,15 @@ function plats() {
   return resto.carte.flatMap(c => c.plats.map(p => ({ ...p, categorie: c.nom })));
 }
 
+// En sur place, tous les plats sont commandables. En livraison, la base
+// refuse les non-livrables ; on les masque pour éviter l'erreur inutile.
 function commandables() {
-  // Un plat non livrable est retiré du parcours à distance. La base refuse
-  // de toute façon — masquer évite simplement au client une erreur inutile.
   return resto.carte
-    .map(c => ({ ...c, plats: c.plats.filter(p => p.disponible && p.livrable) }))
+    .map(c => ({
+      ...c,
+      plats: c.plats.filter(p =>
+        p.disponible && (mode === 'livraison' ? p.livrable : true)),
+    }))
     .filter(c => c.plats.length);
 }
 
@@ -69,6 +70,12 @@ const zone = () => resto.zones.find(z => z.id === $('#zone')?.value);
 const frais = () => (mode === 'livraison' && zone()) ? Number(zone().frais) : 0;
 const total = () => sousTotal() + frais();
 
+const nomMode = () => ({
+  sur_place:  `Table ${tableNumero}`,
+  a_emporter: 'À emporter',
+  livraison:  'Livraison',
+})[mode] || '';
+
 function erreur(message) {
   const b = $('#erreur');
   b.textContent = message;
@@ -77,9 +84,6 @@ function erreur(message) {
   setTimeout(() => { b.style.display = 'none'; }, 7000);
 }
 
-// Créneaux du jour, par quart d'heure, à partir du délai minimum (R6).
-// Une seule liste dont la première entrée est « dès que possible » : un seul
-// contrôle, les deux usages, aucun calendrier à gérer.
 function creneaux() {
   const out = ['<option value="">Dès que possible</option>'];
   const d = new Date(Date.now() + resto.delai_min_minutes * 60000);
@@ -95,24 +99,36 @@ function creneaux() {
 
 // ---------------------------------------------------------------- vitrine
 function rendreVitrine() {
-  // Aucun emoji sur la vitrine : sur un registre haut de gamme, une icône
-  // colorée du système (📞 rose, 🥡 orange) casse la palette or et crème.
-  // Les libellés seuls suffisent, ils sont plus élégants et plus lisibles.
   const liens = [
     resto.telephone && `<a class="btn" href="tel:${resto.telephone.replace(/\s/g,'')}">${resto.telephone}</a>`,
     resto.facebook && `<a class="btn ghost" href="${resto.facebook}" target="_blank" rel="noopener">Facebook</a>`,
     resto.instagram && `<a class="btn ghost" href="${resto.instagram}" target="_blank" rel="noopener">Instagram</a>`,
   ].filter(Boolean).join('');
 
-  const commander = [
+  // Les 3 modes de commande. Sur place n'apparaît que si un QR a été scanné.
+  const boutons = [
+    qrToken && `<button class="btn" data-mode="sur_place">Sur place — Table ${tableNumero}</button>`,
     resto.emporter_actif && `<button class="btn" data-mode="a_emporter">À emporter</button>`,
     resto.livraison_active && `<button class="btn" data-mode="livraison">Livraison</button>`,
   ].filter(Boolean).join('');
 
-  // Certains plats sont numérotés dans leur nom (« 11·Venice »). Quand la
-  // catégorie mélange plats numérotés et non numérotés (fusion de deux menus),
-  // l'ordre de la base entrelace les numéros. On restaure l'ordre attendu :
-  // les numérotés d'abord dans leur ordre, puis le reste inchangé.
+  const bandeauCommander = qrToken ? `
+    <div class="vqr reveal">
+      <strong>Bienvenue à votre table N° ${tableNumero}</strong>
+      <p>Composez votre commande depuis votre téléphone.<br>
+         Vous paierez au comptoir à la fin du service.</p>
+      <div class="vliens">${boutons}</div>
+    </div>` : (boutons ? `
+    <div class="vqr reveal">
+      <strong>Commander en ligne</strong>
+      <p>Vous réglez au retrait ou à la livraison.<br>Nous vous appelons pour confirmer.</p>
+      <div class="vliens">${boutons}</div>
+    </div>` : `
+    <div class="vqr reveal">
+      <strong>Commandez à table</strong>
+      <p>Scannez le QR code posé sur votre table :<br>la carte s'ouvre sur votre téléphone.</p>
+    </div>`);
+
   const numero = nom => {
     const m = /^\s*(\d+)\s*[·.\-–—]/.exec(nom || '');
     return m ? parseInt(m[1], 10) : null;
@@ -128,7 +144,7 @@ function rendreVitrine() {
   });
 
   const carte = resto.carte.map(c => {
-    const photo = photoCategorie(c.nom);   // un seul appel — la dédup consomme l'entrée
+    const photo = photoCategorie(c.nom);
     return `
     <section class="vcat reveal">
       ${photo ? `<img class="vcat-photo" src="${photo}" alt="${c.nom}" loading="lazy">` : ''}
@@ -162,30 +178,18 @@ function rendreVitrine() {
       <div class="vscroll">⌄</div>
     </header>
 
-    ${commander ? `<div class="vqr reveal">
-      <strong>Commander en ligne</strong>
-      <p>Vous réglez au retrait ou à la livraison.<br>Nous vous appelons pour confirmer.</p>
-      <div class="vliens">${commander}</div>
-    </div>` : `<div class="vqr reveal">
-      <strong>Commandez à table</strong>
-      <p>Scannez le QR code posé sur votre table :<br>la carte s'ouvre sur votre téléphone.</p>
-    </div>`}
+    ${bandeauCommander}
 
     <div class="wrap narrow">${carte}
       <p class="vpied">Carte tenue à jour par le restaurant.</p>
     </div>`;
 
-  // La photo du hero est posée ici, pas via une variable CSS : une url()
-  // relative dans une variable est résolue par rapport au fichier CSS
-  // (donc /css/img/…, faux) ; en style inline elle l'est par rapport à la
-  // page (donc /img/…, correct).
   const hero = document.querySelector('.vhero');
   if (hero) hero.style.backgroundImage = "url('img/hero.jpg')";
 
   animerAuScroll();
 }
 
-// Apparition douce des sections au défilement — le mouvement fait le premium.
 function animerAuScroll() {
   const cibles = document.querySelectorAll('.vitrine .reveal');
   if (!('IntersectionObserver' in window)) {
@@ -203,17 +207,21 @@ function animerAuScroll() {
 // --------------------------------------------------------------- commande
 function rendreCommande() {
   const cats = commandables();
+  const avis = mode === 'livraison'
+    ? `<p class="sub" style="margin-top:14px">
+         Les viandes, glaces et boissons chaudes ne sont pas proposées en livraison.</p>`
+    : '';
+
   page().innerHTML = `
     <div id="erreur" class="alerte"></div>
     <header class="topbar">
       <button class="btn sm ghost" id="retour">←</button>
       <div class="brand">${resto.nom}</div>
       <div class="spacer"></div>
-      <span class="badge">${mode === 'livraison' ? 'Livraison' : 'À emporter'}</span>
+      <span class="badge">${nomMode()}</span>
     </header>
     <main class="wrap narrow">
-      ${mode === 'livraison' ? `<p class="sub" style="margin-top:14px">
-        Les viandes, glaces et boissons chaudes ne sont pas proposées en livraison.</p>` : ''}
+      ${avis}
       ${cats.map(c => `
         <section class="vcat">
           <h2>${c.nom}</h2>
@@ -242,7 +250,7 @@ function rendreCommande() {
       <div class="inner">
         <div><div class="cnt" id="cnt"></div><div class="tot" id="tot"></div></div>
         <div class="spacer"></div>
-        <button class="btn" id="suite">Continuer</button>
+        <button class="btn" id="suite">${mode === 'sur_place' ? 'Envoyer à la cuisine' : 'Continuer'}</button>
       </div>
     </div>`;
   majBarre();
@@ -258,6 +266,8 @@ function majBarre() {
 }
 
 // ------------------------------------------------------------ coordonnées
+// En sur place, ce formulaire n'est pas affiché : la commande part directement.
+// On saute donc la vue coordonnees et on appelle envoyer() depuis la barre.
 function rendreCoordonnees() {
   const L = lignes();
   const zonesOpt = resto.zones.map(z =>
@@ -270,7 +280,7 @@ function rendreCoordonnees() {
       <button class="btn sm ghost" id="retour">←</button>
       <div class="brand">${resto.nom}</div>
       <div class="spacer"></div>
-      <span class="badge">${mode === 'livraison' ? 'Livraison' : 'À emporter'}</span>
+      <span class="badge">${nomMode()}</span>
     </header>
     <main class="wrap narrow">
       <h1>Votre commande</h1>
@@ -321,27 +331,37 @@ function majTotaux() {
 
 // ----------------------------------------------------------- confirmation
 function rendreConfirmation(cmd) {
+  const titre = mode === 'sur_place'
+    ? `Commande envoyée en cuisine`
+    : `Commande envoyée`;
+  const message = mode === 'sur_place'
+    ? `Le personnel apporte votre commande à la table N° ${tableNumero}.<br>
+       Vous réglez au comptoir en fin de service.`
+    : `${resto.nom} va vous appeler pour confirmer avant de préparer.<br>
+       Vous réglez ${mode === 'livraison' ? 'au livreur' : 'au comptoir, au retrait'}.`;
+
+  const totalAffiche = cmd.total ?? cmd.sous_total ?? sousTotal();
+  const sousTotalCmd = cmd.sous_total ?? totalAffiche;
+  const fraisCmd = Number(cmd.frais_livraison || 0);
+
   page().innerHTML = `
     <main class="wrap narrow">
       <div class="card" style="text-align:center;margin-top:40px">
         <div class="vsceau">✦</div>
-        <h1 style="margin-top:8px">Commande envoyée</h1>
+        <h1 style="margin-top:8px">${titre}</h1>
         <p class="sub">Commande N° ${cmd.numero}</p>
-        <div class="badge" style="font-size:15px;padding:10px 16px">
-          ${resto.nom} va vous appeler pour confirmer
-        </div>
+        <div class="badge" style="font-size:15px;padding:10px 16px">${nomMode()}</div>
         <div style="border-top:1px dashed var(--bord);margin-top:18px;padding-top:12px">
-          <div class="bar"><span class="lbl" style="flex:1">Sous-total</span>
-            <span class="n" style="flex:0 0 auto">${fmt.prix(cmd.sous_total)}</span></div>
-          ${Number(cmd.frais_livraison) ? `<div class="bar">
-            <span class="lbl" style="flex:1">Livraison</span>
-            <span class="n" style="flex:0 0 auto">${fmt.prix(cmd.frais_livraison)}</span></div>` : ''}
+          ${mode !== 'sur_place' ? `
+            <div class="bar"><span class="lbl" style="flex:1">Sous-total</span>
+              <span class="n" style="flex:0 0 auto">${fmt.prix(sousTotalCmd)}</span></div>
+            ${fraisCmd ? `<div class="bar">
+              <span class="lbl" style="flex:1">Livraison</span>
+              <span class="n" style="flex:0 0 auto">${fmt.prix(fraisCmd)}</span></div>` : ''}` : ''}
           <div class="bar"><span class="lbl" style="flex:1;font-weight:800">Total</span>
-            <span class="n" style="flex:0 0 auto;font-weight:800">${fmt.prix(cmd.total)}</span></div>
+            <span class="n" style="flex:0 0 auto;font-weight:800">${fmt.prix(totalAffiche)}</span></div>
         </div>
-        <p class="sub" style="margin-top:18px">
-          Vous réglez ${mode === 'livraison' ? 'au livreur' : 'au comptoir, au retrait'}.
-        </p>
+        <p class="sub" style="margin-top:18px">${message}</p>
         <button class="btn ghost wide" id="retourAccueil">Retour à la carte</button>
       </div>
     </main>`;
@@ -373,36 +393,54 @@ document.addEventListener('click', async e => {
     else { vue = 'vitrine'; panier = {}; rendreVitrine(); }
     window.scrollTo(0, 0);
   }
-  if (e.target.closest('#suite')) { vue = 'coordonnees'; rendreCoordonnees(); window.scrollTo(0,0); }
+  if (e.target.closest('#suite')) {
+    // En sur place, aucune coordonnée à demander : on envoie directement.
+    if (mode === 'sur_place') { await envoyer(e.target.closest('#suite')); }
+    else { vue = 'coordonnees'; rendreCoordonnees(); window.scrollTo(0,0); }
+  }
   if (e.target.closest('#retourAccueil')) { vue = 'vitrine'; panier = {}; cleEnvoi = null; rendreVitrine(); }
-  if (e.target.closest('#envoyer')) await envoyer();
+  if (e.target.closest('#envoyer')) await envoyer(e.target.closest('#envoyer'));
 });
 
 document.addEventListener('change', e => { if (e.target.id === 'zone') majTotaux(); });
 
-async function envoyer() {
-  const bouton = $('#envoyer');
-  bouton.disabled = true;
-  if (!cleEnvoi) cleEnvoi = crypto.randomUUID();   // D10
+async function envoyer(bouton) {
+  bouton = bouton || $('#envoyer') || $('#suite');
+  if (bouton) bouton.disabled = true;
+  if (!cleEnvoi) cleEnvoi = crypto.randomUUID();
 
   try {
-    const nom = $('#nom').value.trim();
-    const tel = $('#tel').value.trim();
-    if (!nom || !tel) throw new Error('Nom et téléphone obligatoires');
+    let cmd;
+    const lignesPanier = lignes().map(l => ({ variante_id: l.id, quantite: l.qty }));
 
-    localStorage.setItem('qresto.nom', nom);
-    localStorage.setItem('qresto.tel', tel);
-
-    const cmd = await Store.creerCommandeDistance({
-      slug, mode,
-      lignes: lignes().map(l => ({ variante_id: l.id, quantite: l.qty })),
-      nom, telephone: tel,
-      adresse: mode === 'livraison' ? $('#adresse').value.trim() : null,
-      zoneId:  mode === 'livraison' ? $('#zone').value : null,
-      heure:   $('#creneau').value || null,
-      note:    $('#note').value.trim(),
-      cleEnvoi,
-    });
+    if (mode === 'sur_place') {
+      // Parcours QR : nom du convive optionnel, aucune coordonnée.
+      const nomStocke = localStorage.getItem('qresto.nom') || null;
+      cmd = await Store.creerCommande({
+        qrToken,
+        lignes: lignesPanier,
+        nom: nomStocke,
+        note: null,
+        cleEnvoi,
+      });
+    } else {
+      // Parcours à distance : nom + tél obligatoires, adresse+zone si livraison.
+      const nom = $('#nom').value.trim();
+      const tel = $('#tel').value.trim();
+      if (!nom || !tel) throw new Error('Nom et téléphone obligatoires');
+      localStorage.setItem('qresto.nom', nom);
+      localStorage.setItem('qresto.tel', tel);
+      cmd = await Store.creerCommandeDistance({
+        slug: slug || resto.slug, mode,
+        lignes: lignesPanier,
+        nom, telephone: tel,
+        adresse: mode === 'livraison' ? $('#adresse').value.trim() : null,
+        zoneId:  mode === 'livraison' ? $('#zone').value : null,
+        heure:   $('#creneau').value || null,
+        note:    $('#note').value.trim(),
+        cleEnvoi,
+      });
+    }
     cleEnvoi = null;
     vue = 'confirmation';
     rendreConfirmation(cmd);
@@ -410,16 +448,25 @@ async function envoyer() {
   } catch (err) {
     erreur(Store.messageErreur(err));
   } finally {
-    bouton.disabled = false;
+    if (bouton) bouton.disabled = false;
   }
 }
 
 // -------------------------------------------------------------- démarrage
 (async () => {
-  if (!slug) { page().innerHTML = '<div class="empty">Aucun restaurant demandé.</div>'; return; }
+  if (!qrToken && !slug) {
+    page().innerHTML = '<div class="empty">Aucun restaurant demandé.</div>';
+    return;
+  }
   try {
-    resto = await Store.vitrine(slug);
-    if (!resto) throw new Error('Restaurant introuvable');
+    if (qrToken) {
+      resto = await Store.vitrineParJeton(qrToken);
+      if (!resto) throw new Error('QR code invalide. Demandez au personnel.');
+      tableNumero = resto.table_numero;
+    } else {
+      resto = await Store.vitrine(slug);
+      if (!resto) throw new Error('Restaurant introuvable');
+    }
     document.title = `${resto.nom} — ${resto.ville}`;
     rendreVitrine();
   } catch (e) {

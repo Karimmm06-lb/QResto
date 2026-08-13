@@ -242,6 +242,15 @@ const Store = (() => {
       return data;
     },
 
+    // Même payload que vitrine, mais adressé par jeton QR (scan d'une table)
+    // — évite d'exposer le slug dans le QR et ajoute le numéro de table.
+    async vitrineParJeton(qrToken) {
+      await init();
+      const { data, error } = await sb.rpc('vitrine_par_jeton', { p_qr_token: qrToken });
+      if (error) throw error;
+      return data;
+    },
+
     // ------------------------------------------------- commande à distance
     // Le parcours par QR et le parcours à distance sont deux procédures
     // distinctes : le premier n'a ni téléphone, ni adresse, ni zone, et ne

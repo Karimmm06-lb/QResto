@@ -41,7 +41,10 @@ async function ouvrirSession(user) {
     Store.restaurant(restaurantId),
   ]);
 
-  const base = location.href.replace(/qr\.html.*$/, '') + 'client.html?t=';
+  // Les QR pointent désormais vers la vitrine (qui prend le relais avec le
+  // mode « sur place »). client.html redirige vers resto.html pour couvrir
+  // les QR déjà imprimés, mais les nouveaux QR utilisent l'URL propre.
+  const base = location.href.replace(/qr\.html.*$/, '') + 'resto.html?t=';
   $('#consigne').textContent =
     `${tables.length} tables · imprimez cette page, découpez, et posez un carton par table. `
     + `Les QR pointent vers ${location.origin}.`;

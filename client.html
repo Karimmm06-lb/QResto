@@ -2,47 +2,23 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>QResto — Commander</title>
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QResto — Redirection…</title>
+  <!--
+    Cette page n'est plus la page de commande : celle-ci est désormais
+    absorbée par la vitrine (resto.html), qui gère à la fois le mode sur place
+    (jeton QR) et les modes à distance. On redirige simplement pour que les
+    QR déjà imprimés continuent de marcher.
+  -->
+  <script>
+    var q = location.search;
+    location.replace('resto.html' + (q || ''));
+  </script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand" id="restoNom">Q<span>Resto</span></div>
-    <div class="badge" id="tableBadge">…</div>
-    <div class="spacer"></div>
-    <div class="langs">
-      <button data-lang="fr">FR</button>
-      <button data-lang="ar">ع</button>
-      <button data-lang="en">EN</button>
-    </div>
-  </header>
-
-  <div id="erreur" class="alerte"></div>
-
-  <main class="wrap narrow">
-    <div id="menuView">
-      <div class="catsWrap"><div class="cats" id="cats"></div></div>
-      <div class="grid" id="dishes"></div>
-    </div>
-    <div id="panierView" style="display:none"></div>
-    <div id="confirmView" style="display:none"></div>
-  </main>
-
-  <div class="cartbar" id="cartbar" style="display:none">
-    <div class="inner">
-      <div>
-        <div class="cnt" id="cartCount"></div>
-        <div class="tot" id="cartTotal"></div>
-      </div>
-      <div class="spacer"></div>
-      <button class="btn" id="sendBtn"></button>
-    </div>
-  </div>
-
-  <script src="js/config.js?v=2"></script>
-  <script src="js/data.js?v=2"></script>
-  <script src="js/store.js?v=2"></script>
-  <script src="js/client.js?v=2"></script>
+  <noscript>
+    <p>Cette page a déménagé. <a id="lien" href="resto.html">Continuer</a></p>
+    <script>document.getElementById('lien').href = 'resto.html' + location.search;</script>
+  </noscript>
 </body>
 </html>

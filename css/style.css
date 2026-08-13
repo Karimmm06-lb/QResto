@@ -352,7 +352,8 @@ input:focus, textarea:focus {
 .vitrine .vhero {
   position: relative; min-height: 92vh;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-align: center; color: #fff; padding: 40px 24px;
+  text-align: center; color: #fff; padding: 40px 20px;
+  overflow: hidden;
   background-color: var(--v-nuit);
   background-size: cover; background-position: center; background-repeat: no-repeat;
   /* La photo est posée en JS (url relative résolue depuis la page, pas le CSS). */
@@ -371,8 +372,13 @@ input:focus, textarea:focus {
   margin-bottom: 20px;
 }
 .vitrine .vhero h1 {
-  font-family: var(--serif); font-weight: 500; font-size: 62px; line-height: 1;
-  margin: 0; letter-spacing: 1px; text-shadow: 0 2px 30px rgba(0,0,0,.45);
+  font-family: var(--serif); font-weight: 500;
+  /* Fluide en vw : garantit que le titre rentre à toute largeur, indépendamment
+     des breakpoints (dont Chrome headless en mode --window-size ne tient pas
+     toujours compte). ~34 px sur 375, ~40 px sur 500, plafonné à 62 px. */
+  font-size: clamp(34px, 8vw, 62px); line-height: 1;
+  margin: 0; letter-spacing: 0; text-shadow: 0 2px 30px rgba(0,0,0,.45);
+  max-width: 100%;
 }
 /* Le filet d'or, encadré de deux traits fins : la signature visuelle. */
 .vitrine .vfiletor {
@@ -390,12 +396,29 @@ input:focus, textarea:focus {
   font-family: var(--sans); font-weight: 300; margin: 0 0 26px;
   font-size: 13.5px; letter-spacing: .3px; opacity: .9; line-height: 2;
 }
-.vitrine .vliens { display: flex; gap: 11px; justify-content: center; flex-wrap: wrap; }
+.vitrine { overflow-x: hidden; }
+/* `width: 100%` + `min-width: 0` : sans ça, dans un parent flex-column comme
+   le hero, ce container gonfle à sa largeur intrinsèque (somme des boutons)
+   et flex-wrap ne peut plus s'appliquer. */
+.vitrine .vliens {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  width: 100%; min-width: 0;
+}
+/* Sur mobile portrait, empile les liens verticalement : plus lisible et plus
+   tactile qu'un rang à 3 boutons compressés. Le seuil 760 est volontairement
+   large : Chrome sans émulation mobile utilise un viewport de layout plus grand
+   que la fenêtre, un seuil trop bas rate le rendu qu'on vise. */
+@media (max-width: 760px) {
+  .vitrine .vhero .vliens { flex-direction: column; align-items: stretch; max-width: 260px; margin: 0 auto; }
+  .vitrine .vhero .vliens .btn { text-align: center; }
+}
 .vitrine .vhero .vliens .btn {
   background: rgba(255,255,255,.96); color: var(--v-encre);
   border: none; text-decoration: none; font-weight: 500; letter-spacing: .5px;
-  font-family: var(--sans); padding: 13px 22px; border-radius: 2px;
+  font-family: var(--sans); padding: 12px 18px; border-radius: 2px;
+  font-size: 13.5px; white-space: nowrap;
 }
+@media (min-width: 520px) { .vitrine .vhero .vliens .btn { padding: 13px 22px; font-size: 14.5px; } }
 .vitrine .vhero .vliens .btn.ghost {
   background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.6);
 }

@@ -84,16 +84,37 @@ function creneaux() {
 
 // ---------------------------------------------------------------- vitrine
 function rendreVitrine() {
+  // Aucun emoji sur la vitrine : sur un registre haut de gamme, une icône
+  // colorée du système (📞 rose, 🥡 orange) casse la palette or et crème.
+  // Les libellés seuls suffisent, ils sont plus élégants et plus lisibles.
   const liens = [
-    resto.telephone && `<a class="btn" href="tel:${resto.telephone.replace(/\s/g,'')}">📞 ${resto.telephone}</a>`,
+    resto.telephone && `<a class="btn" href="tel:${resto.telephone.replace(/\s/g,'')}">${resto.telephone}</a>`,
     resto.facebook && `<a class="btn ghost" href="${resto.facebook}" target="_blank" rel="noopener">Facebook</a>`,
     resto.instagram && `<a class="btn ghost" href="${resto.instagram}" target="_blank" rel="noopener">Instagram</a>`,
   ].filter(Boolean).join('');
 
   const commander = [
-    resto.emporter_actif && `<button class="btn" data-mode="a_emporter">🥡 Commander à emporter</button>`,
-    resto.livraison_active && `<button class="btn" data-mode="livraison">🛵 Se faire livrer</button>`,
+    resto.emporter_actif && `<button class="btn" data-mode="a_emporter">À emporter</button>`,
+    resto.livraison_active && `<button class="btn" data-mode="livraison">Livraison</button>`,
   ].filter(Boolean).join('');
+
+  // Certains plats sont numérotés dans leur nom (« 11·Venice »). Quand la
+  // catégorie mélange plats numérotés et non numérotés (fusion de deux menus),
+  // l'ordre de la base entrelace les numéros. On restaure l'ordre attendu :
+  // les numérotés d'abord dans leur ordre, puis le reste inchangé.
+  const numero = nom => {
+    const m = /^\s*(\d+)\s*[·.\-–—]/.exec(nom || '');
+    return m ? parseInt(m[1], 10) : null;
+  };
+  resto.carte.forEach(c => {
+    if (c.plats.some(p => numero(p.nom) !== null)) {
+      c.plats = [
+        ...c.plats.filter(p => numero(p.nom) !== null)
+                  .sort((a, b) => numero(a.nom) - numero(b.nom)),
+        ...c.plats.filter(p => numero(p.nom) === null),
+      ];
+    }
+  });
 
   const carte = resto.carte.map(c => `
     <section class="vcat reveal">
@@ -174,7 +195,7 @@ function rendreCommande() {
       <button class="btn sm ghost" id="retour">←</button>
       <div class="brand">${resto.nom}</div>
       <div class="spacer"></div>
-      <span class="badge">${mode === 'livraison' ? '🛵 Livraison' : '🥡 À emporter'}</span>
+      <span class="badge">${mode === 'livraison' ? 'Livraison' : 'À emporter'}</span>
     </header>
     <main class="wrap narrow">
       ${mode === 'livraison' ? `<p class="sub" style="margin-top:14px">
@@ -235,7 +256,7 @@ function rendreCoordonnees() {
       <button class="btn sm ghost" id="retour">←</button>
       <div class="brand">${resto.nom}</div>
       <div class="spacer"></div>
-      <span class="badge">${mode === 'livraison' ? '🛵 Livraison' : '🥡 À emporter'}</span>
+      <span class="badge">${mode === 'livraison' ? 'Livraison' : 'À emporter'}</span>
     </header>
     <main class="wrap narrow">
       <h1>Votre commande</h1>
@@ -265,7 +286,7 @@ function rendreCoordonnees() {
       </div>
 
       <p class="sub" style="margin-top:14px">
-        📞 Le restaurant vous appellera pour confirmer avant de préparer.
+        Le restaurant vous appellera pour confirmer avant de préparer.
         Vous réglez ${mode === 'livraison' ? 'à la livraison' : 'au retrait'}.
       </p>
       <button class="btn wide" id="envoyer">Envoyer la commande</button>
@@ -289,7 +310,7 @@ function rendreConfirmation(cmd) {
   page().innerHTML = `
     <main class="wrap narrow">
       <div class="card" style="text-align:center;margin-top:40px">
-        <div style="font-size:52px">📞</div>
+        <div class="vsceau">✦</div>
         <h1 style="margin-top:8px">Commande envoyée</h1>
         <p class="sub">Commande N° ${cmd.numero}</p>
         <div class="badge" style="font-size:15px;padding:10px 16px">
@@ -305,7 +326,7 @@ function rendreConfirmation(cmd) {
             <span class="n" style="flex:0 0 auto;font-weight:800">${fmt.prix(cmd.total)}</span></div>
         </div>
         <p class="sub" style="margin-top:18px">
-          💵 Vous réglez ${mode === 'livraison' ? 'au livreur' : 'au comptoir, au retrait'}.
+          Vous réglez ${mode === 'livraison' ? 'au livreur' : 'au comptoir, au retrait'}.
         </p>
         <button class="btn ghost wide" id="retourAccueil">Retour à la carte</button>
       </div>

@@ -494,6 +494,60 @@ input:focus, textarea:focus {
   font-family: var(--sans); font-weight: 300;
 }
 
+/* --- Écrans de commande : même registre que la vitrine --------------------- */
+.vitrine .topbar {
+  background: var(--v-surface); border-bottom: 1px solid var(--v-bord);
+}
+.vitrine .topbar .brand {
+  font-family: var(--serif); font-weight: 500; font-size: 21px;
+  letter-spacing: .3px; color: var(--v-encre);
+}
+.vitrine .topbar .brand span { color: var(--v-or); }
+.vitrine .badge {
+  background: transparent; border: 1px solid var(--v-or); color: var(--v-or);
+  font-family: var(--sans); font-weight: 400; letter-spacing: .6px;
+  text-transform: uppercase; font-size: 11px; border-radius: 2px;
+}
+/* `:not(.vhero h1)` est indispensable : sans cette exclusion, la couleur
+   charbon écrase le blanc du titre posé sur la photo du hero, qui devient
+   illisible. */
+.vitrine .wrap h1 {
+  font-family: var(--serif); font-weight: 500; font-size: 34px;
+  letter-spacing: .4px; color: var(--v-encre);
+}
+.vitrine h2 { font-family: var(--serif); font-weight: 500; }
+.vitrine .card {
+  background: var(--v-surface); border-color: var(--v-bord); border-radius: 3px;
+}
+.vitrine .dish .name { font-family: var(--serif); font-weight: 600; font-size: 18px; }
+.vitrine .vrow .vprix { font-family: var(--serif); font-weight: 600; color: var(--v-or); }
+.vitrine .qty button {
+  border-color: var(--v-bord); background: var(--v-surface); color: var(--v-encre);
+  border-radius: 2px;
+}
+.vitrine .qty button.plus { background: var(--v-nuit); border-color: var(--v-nuit); color: #fff; }
+.vitrine .btn {
+  border-radius: 2px; font-family: var(--sans); font-weight: 400;
+  letter-spacing: .8px; text-transform: uppercase; font-size: 12.5px;
+}
+.vitrine .wrap .btn:not(.ghost) { background: var(--v-nuit); }
+.vitrine .wrap .btn:not(.ghost):hover { background: var(--v-or); }
+.vitrine .btn.ghost { border-color: var(--v-bord); color: var(--v-encre); background: transparent; }
+.vitrine .cartbar {
+  background: rgba(255,253,248,.96); border-top: 1px solid var(--v-bord);
+}
+.vitrine .cartbar .tot { font-family: var(--serif); font-weight: 600; color: var(--v-or); }
+.vitrine input, .vitrine textarea, .vitrine select {
+  border-color: var(--v-bord); background: var(--v-surface); border-radius: 2px;
+  font-family: var(--sans); font-weight: 300;
+}
+.vitrine input:focus, .vitrine textarea:focus { outline-color: var(--v-or); }
+.vitrine .sub { color: var(--v-doux); font-family: var(--sans); font-weight: 300; }
+/* Sceau doré de l'écran de confirmation, à la place de l'emoji téléphone. */
+.vitrine .vsceau {
+  font-size: 34px; color: var(--v-or); letter-spacing: 6px; margin-bottom: 6px;
+}
+
 /* Apparition douce au défilement — le mouvement, marque du premium. */
 .vitrine .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
 .vitrine .reveal.vu { opacity: 1; transform: none; }

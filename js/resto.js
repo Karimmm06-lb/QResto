@@ -28,9 +28,9 @@ const page = () => $('#page');
 // sur quelle photo) : ce sont des visuels de section, pas de plat. En
 // production, le restaurant fournit ses propres fichiers.
 const PHOTO_CAT = [
-  [/pizza/i,          'img/cat-pizza.jpg'],
-  [/burger/i,         'img/cat-burger.jpg'],
-  [/jus|mocktail|boisson|soif|milkshake/i, 'img/cat-boisson.jpg'],
+  [/pizza/i,          'img/pizzas.jpg'],
+  [/burger/i,         'img/burgers.jpg'],
+  [/jus|mocktail|boisson|soif|milkshake/i, 'img/boissons.jpg'],
 ];
 const photoCategorie = nom => (PHOTO_CAT.find(([re]) => re.test(nom)) || [])[1];
 
@@ -96,43 +96,73 @@ function rendreVitrine() {
   ].filter(Boolean).join('');
 
   const carte = resto.carte.map(c => `
-    <section class="vcat">
+    <section class="vcat reveal">
       ${photoCategorie(c.nom) ? `<img class="vcat-photo" src="${photoCategorie(c.nom)}" alt="${c.nom}" loading="lazy">` : ''}
       <h2>${c.nom}</h2>
       ${c.plats.map(p => `
         <div class="vplat ${p.disponible ? '' : 'epuise'}">
-          <div class="vnom">${p.nom}${p.disponible ? '' : ' <span class="chip payee">Épuisé</span>'}</div>
+          <div class="vplat-tete">
+            <span class="vnom">${p.nom}${p.disponible ? '' : ' <span class="chip payee">Épuisé</span>'}</span>
+            <span class="lead"></span>
+            <span class="vprix">${(p.prix||[]).map(v =>
+              `<span class="p">${v.libelle !== 'Standard' ? `<i>${v.libelle}</i> ` : ''}${fmt.prix(v.montant)}</span>`
+            ).join('')}</span>
+          </div>
           ${p.description ? `<div class="vdesc">${p.description}</div>` : ''}
-          <div class="vprix">${(p.prix||[]).map(v =>
-            `<span class="p">${v.libelle !== 'Standard' ? `<i>${v.libelle}</i> ` : ''}${fmt.prix(v.montant)}</span>`
-          ).join('')}</div>
         </div>`).join('')}
     </section>`).join('');
 
   page().innerHTML = `
     <div id="erreur" class="alerte"></div>
-    <header class="vhero" style="--hero:url('img/hero.jpg')">
+    <header class="vhero">
+      <div class="kicker">${resto.ville || ''}</div>
       <h1>${resto.nom}</h1>
+      <div class="vfiletor"><span>✦</span></div>
       ${resto.slogan ? `<p class="vslogan">${resto.slogan}</p>` : ''}
       <p class="vinfo">
-        ${resto.adresse ? `📍 ${resto.adresse}` : ''}
-        ${resto.horaires ? `<br>🕐 ${resto.horaires}` : ''}
+        ${resto.adresse ? `${resto.adresse}` : ''}
+        ${resto.horaires ? `<br>${resto.horaires}` : ''}
       </p>
       <div class="vliens">${liens}</div>
+      <div class="vscroll">⌄</div>
     </header>
 
-    ${commander ? `<div class="vqr">
+    ${commander ? `<div class="vqr reveal">
       <strong>Commander en ligne</strong>
-      <p>Vous réglez au retrait ou à la livraison. Nous vous appelons pour confirmer.</p>
-      <div class="vliens" style="margin-top:12px">${commander}</div>
-    </div>` : `<div class="vqr">
-      <strong>Commandez depuis votre table</strong>
-      <p>Scannez le QR code posé sur votre table : la carte s'ouvre sur votre téléphone.</p>
+      <p>Vous réglez au retrait ou à la livraison.<br>Nous vous appelons pour confirmer.</p>
+      <div class="vliens">${commander}</div>
+    </div>` : `<div class="vqr reveal">
+      <strong>Commandez à table</strong>
+      <p>Scannez le QR code posé sur votre table :<br>la carte s'ouvre sur votre téléphone.</p>
     </div>`}
 
     <div class="wrap narrow">${carte}
-      <p class="vpied">Carte mise à jour directement par le restaurant.</p>
+      <p class="vpied">Carte tenue à jour par le restaurant.</p>
     </div>`;
+
+  // La photo du hero est posée ici, pas via une variable CSS : une url()
+  // relative dans une variable est résolue par rapport au fichier CSS
+  // (donc /css/img/…, faux) ; en style inline elle l'est par rapport à la
+  // page (donc /img/…, correct).
+  const hero = document.querySelector('.vhero');
+  if (hero) hero.style.backgroundImage = "url('img/hero.jpg')";
+
+  animerAuScroll();
+}
+
+// Apparition douce des sections au défilement — le mouvement fait le premium.
+function animerAuScroll() {
+  const cibles = document.querySelectorAll('.vitrine .reveal');
+  if (!('IntersectionObserver' in window)) {
+    cibles.forEach(el => el.classList.add('vu'));
+    return;
+  }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('vu'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  cibles.forEach(el => io.observe(el));
 }
 
 // --------------------------------------------------------------- commande

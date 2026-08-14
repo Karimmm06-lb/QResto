@@ -194,7 +194,28 @@ function rendreVitrine() {
 
     <div class="wrap narrow">${carte}
       <p class="vpied">Carte tenue à jour par le restaurant.</p>
-    </div>`;
+    </div>
+
+    <footer class="vfooter">
+      <div class="vfooter-inner">
+        <div class="vfooter-marque">
+          <div class="vfooter-nom">${resto.nom}</div>
+          <div class="vfooter-adresse">
+            ${resto.adresse || ''}${resto.telephone ? `<br>${resto.telephone}` : ''}
+          </div>
+        </div>
+        <nav class="vfooter-liens" aria-label="Pied de page">
+          <a href="mentions-legales.html">Mentions légales</a>
+          <a href="tel:${(resto.telephone||'').replace(/\s/g,'')}">Contact</a>
+          ${resto.facebook ? `<a href="${resto.facebook}" target="_blank" rel="noopener">Facebook</a>` : ''}
+          ${resto.instagram ? `<a href="${resto.instagram}" target="_blank" rel="noopener">Instagram</a>` : ''}
+        </nav>
+        <div class="vfooter-tech">
+          Propulsé par <strong>QResto</strong> —
+          commande par QR code pour les restaurants algériens.
+        </div>
+      </div>
+    </footer>`;
 
   const hero = document.querySelector('.vhero');
   if (hero) hero.style.backgroundImage = "url('img/hero.jpg')";

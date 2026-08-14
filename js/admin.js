@@ -113,6 +113,35 @@ $('#mdp').addEventListener('keydown', e => { if (e.key === 'Enter') $('#loginBtn
 
 $('#logoutBtn').onclick = async () => { await Store.deconnexion(); location.reload(); };
 
+function retourAuLogin(motif) {
+  restaurantId = null;
+  $('#barre').style.display = 'none';
+  $('#appView').style.display = 'none';
+  $('#loginView').style.display = '';
+  if (motif) {
+    const c = $('#loginView .card');
+    if (c && !c.querySelector('.alerte-session')) {
+      const b = document.createElement('div');
+      b.className = 'alerte-session';
+      b.textContent = motif;
+      c.insertBefore(b, c.firstChild);
+    }
+  }
+  Store.deconnexion().catch(() => {});
+}
+
+window.addEventListener('qresto:session-expiree',
+  () => retourAuLogin('Votre session a expiré. Reconnectez-vous.'));
+
+// Intercepter les erreurs de session sur les appels admin.
+async function protegerSession(fn) {
+  try { return await fn(); }
+  catch (e) {
+    if (Store.estSessionExpiree(e)) { Store.signalerSessionExpiree(); return; }
+    throw e;
+  }
+}
+
 (async () => {
   const user = await Store.utilisateur();
   if (user) await ouvrirSession(user);

@@ -127,6 +127,7 @@ function carteSession(s) {
 async function rafraichir() {
   try {
     const { tables, distance } = await Store.sessionsOuvertes();
+    // Session encore valide : on continue le rendu normalement.
     const toutes = [...tables, ...distance];
     const cmds = toutes.flatMap(s => s.commandes || []);
 
@@ -135,13 +136,27 @@ async function rafraichir() {
     $('#kKitchen').textContent   = cmds.filter(c => c.statut === 'cuisine').length;
     $('#kCash').textContent      = fmt.prix(toutes.reduce((t, s) => t + Number(s.total), 0));
 
+    // Empty state accueillant quand rien n'est arrivé — plus utile qu'un
+     // simple « aucune commande » froid : rassure le caissier que le poste
+     // fonctionne et rappelle ce qu'il faut attendre.
+    const attente = premierRendu && !tables.length && !distance.length;
+
     $('#tables').innerHTML = tables.length
       ? tables.map(carteSession).join('')
-      : `<div class="empty">Aucune table en cours.</div>`;
+      : `<div class="empty attente-caisse">
+           <div class="ac-icone" aria-hidden="true">🍽️</div>
+           <p class="ac-titre">En attente de la première table</p>
+           <p class="ac-desc">Un client scanne le QR de sa table et sa commande apparaît ici en moins de 3 secondes.</p>
+         </div>`;
 
     $('#distance').innerHTML = distance.length
       ? distance.map(carteSession).join('')
-      : `<div class="empty">Aucune commande à distance.</div>`;
+      : `<div class="empty attente-caisse">
+           <div class="ac-icone" aria-hidden="true">📞</div>
+           <p class="ac-titre">Aucune commande à distance</p>
+           <p class="ac-desc">Les commandes à emporter et livraison passées depuis la vitrine du restaurant apparaîtront ici.</p>
+         </div>`;
+    void attente;   // réservé si l'on veut afficher un bandeau global plus tard
 
     // On ne bipe que sur les commandes réellement nouvelles, jamais au premier
     // affichage — sinon la caisse sonne à chaque rechargement de page.
@@ -150,9 +165,34 @@ async function rafraichir() {
     if (nouvelles.length && !premierRendu) bip();
     premierRendu = false;
   } catch (e) {
+    if (Store.estSessionExpiree(e)) { Store.signalerSessionExpiree(); return; }
     erreur(Store.messageErreur(e));
   }
 }
+
+// Session expirée : arrêter les abonnements, montrer un message dans la
+// carte de login, et laisser le caissier retaper son mot de passe sans
+// perdre la page.
+function retourAuLogin(motif) {
+  if (desabonner) { try { desabonner(); } catch {} desabonner = null; }
+  premierRendu = true; vues = new Set(); restaurantId = null;
+  $('#barre').style.display = 'none';
+  $('#appView').style.display = 'none';
+  $('#loginView').style.display = '';
+  if (motif) {
+    const c = $('#loginView .card');
+    if (c && !c.querySelector('.alerte-session')) {
+      const b = document.createElement('div');
+      b.className = 'alerte-session';
+      b.textContent = motif;
+      c.insertBefore(b, c.firstChild);
+    }
+  }
+  Store.deconnexion().catch(() => {});
+}
+
+window.addEventListener('qresto:session-expiree',
+  () => retourAuLogin('Votre session a expiré. Reconnectez-vous.'));
 
 // ---------------------------------------------------------------- impression
 async function imprimer(id) {

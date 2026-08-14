@@ -759,3 +759,96 @@ input:focus, textarea:focus {
   cursor: default;
   pointer-events: none;
 }
+
+/* Bandeau d'alerte au-dessus du formulaire de login quand la session a
+   expiré ou qu'un problème d'authentification a coupé le poste. */
+.alerte-session {
+  background: #fff4dc;
+  color: #6b4a08;
+  border: 1px solid #f2cc71;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  font-family: 'Jost', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Empty state accueillant sur la caisse — évite l'écran mort qui inquiète
+   un caissier ouvrant le poste avant l'arrivée des premiers clients. */
+.attente-caisse {
+  padding: 40px 24px;
+  text-align: center;
+  border: 1px dashed #d9c9a4;
+  background: #fbf7ec;
+  border-radius: 12px;
+}
+.ac-icone { font-size: 42px; margin-bottom: 8px; }
+.ac-titre {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 500; font-size: 22px; color: #3a2416;
+  margin: 4px 0 6px;
+}
+.ac-desc { color: #6b5334; font-size: 14px; line-height: 1.5; margin: 0; }
+
+/* Footer de la vitrine — pied de page discret mais présent, avec les
+   mentions légales, le contact et la marque de la solution. Un vrai
+   site professionnel a un pied de page ; son absence trahit le prototype. */
+.vfooter {
+  margin-top: 60px;
+  padding: 40px 20px 30px;
+  background: #1a0f05;
+  color: #d9c9a4;
+  font-family: 'Jost', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 13px;
+}
+.vfooter-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  gap: 24px;
+}
+.vfooter-marque { text-align: center; }
+.vfooter-nom {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 500; font-size: 24px;
+  color: #f8f3ea;
+  margin-bottom: 6px;
+}
+.vfooter-adresse { color: #a08a5c; line-height: 1.6; }
+.vfooter-liens {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 20px;
+}
+.vfooter-liens a {
+  color: #d9c9a4;
+  text-decoration: none;
+  padding: 4px 0;
+  border-bottom: 1px solid transparent;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+.vfooter-liens a:hover, .vfooter-liens a:focus-visible {
+  color: #c9a24a;
+  border-bottom-color: #c9a24a;
+  outline: none;
+}
+.vfooter-tech {
+  text-align: center;
+  color: #7a6540;
+  font-size: 12px;
+  padding-top: 18px;
+  border-top: 1px solid #3a2416;
+}
+.vfooter-tech strong { color: #c9a24a; font-weight: 500; }
+
+@media (min-width: 720px) {
+  .vfooter-inner {
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+  }
+  .vfooter-marque { text-align: left; }
+  .vfooter-liens { justify-content: flex-end; }
+  .vfooter-tech { grid-column: 1 / -1; }
+}

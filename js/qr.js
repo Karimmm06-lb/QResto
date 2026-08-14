@@ -60,7 +60,32 @@ $('#loginBtn').onclick = async () => {
 $('#mdp').addEventListener('keydown', e => { if (e.key === 'Enter') $('#loginBtn').click(); });
 $('#printBtn').onclick = () => window.print();
 
+function retourAuLogin(motif) {
+  restaurantId = null;
+  $('#barre').style.display = 'none';
+  $('#appView').style.display = 'none';
+  $('#loginView').style.display = '';
+  if (motif) {
+    const c = $('#loginView .card');
+    if (c && !c.querySelector('.alerte-session')) {
+      const b = document.createElement('div');
+      b.className = 'alerte-session';
+      b.textContent = motif;
+      c.insertBefore(b, c.firstChild);
+    }
+  }
+  Store.deconnexion().catch(() => {});
+}
+
+window.addEventListener('qresto:session-expiree',
+  () => retourAuLogin('Votre session a expiré. Reconnectez-vous.'));
+
 (async () => {
-  const user = await Store.utilisateur();
-  if (user) await ouvrirSession(user);
+  try {
+    const user = await Store.utilisateur();
+    if (user) await ouvrirSession(user);
+  } catch (e) {
+    if (Store.estSessionExpiree(e)) { Store.signalerSessionExpiree(); return; }
+    erreur(Store.messageErreur(e));
+  }
 })();

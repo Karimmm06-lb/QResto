@@ -39,11 +39,29 @@ const Store = (() => {
     if (/Motif obligatoire/i.test(brut))        return "Indiquez un motif : la commande est déjà lancée en cuisine.";
     if (/Interdit/i.test(brut))                 return 'Action non autorisée.';
     if (/Invalid login/i.test(brut))            return 'Identifiants incorrects.';
+    if (estSessionExpiree(e))                   return 'Session expirée. Reconnectez-vous.';
     return brut;
+  }
+
+  // Détecte les erreurs d'authentification côté Supabase — JWT expiré,
+  // refresh token révoqué, session absente. Les codes utilisés par PostgREST
+  // sont PGRST301 (JWT expired) et 401 quand la session est totalement HS.
+  function estSessionExpiree(e) {
+    const brut = (e?.message || '') + ' ' + (e?.code || '');
+    return /JWT expired|jwt expired|PGRST301|invalid JWT|Auth session missing/i.test(brut)
+        || e?.status === 401;
+  }
+
+  // Signale au reste de l'appli que la session est finie. Chaque écran staff
+  // s'abonne à cet évènement et rebascule sur son formulaire de connexion.
+  function signalerSessionExpiree() {
+    window.dispatchEvent(new CustomEvent('qresto:session-expiree'));
   }
 
   return {
     messageErreur,
+    estSessionExpiree,
+    signalerSessionExpiree,
 
     // ---------------------------------------------------------------- menu
     async menu(restaurantId) {

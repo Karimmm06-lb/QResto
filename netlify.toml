@@ -29,6 +29,30 @@
   status = 302
   force = false
 
+# URLs courtes sans .html — standard pour un site professionnel.
+# Rewrite (200) et non redirect (302) : l'URL affichée reste /caisse,
+# le navigateur ne voit jamais /caisse.html.
+[[redirects]]
+  from = "/caisse"
+  to = "/caisse.html"
+  status = 200
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+[[redirects]]
+  from = "/qr"
+  to = "/qr.html"
+  status = 200
+[[redirects]]
+  from = "/resto"
+  to = "/resto.html"
+  status = 200
+[[redirects]]
+  from = "/mentions-legales"
+  to = "/mentions-legales.html"
+  status = 200
+
 # 404 personnalisé : Netlify sert /404.html automatiquement pour toute URL
 # qui n'existe pas — pas besoin d'une règle explicite, qui aurait risqué
 # d'intercepter des chemins valides selon l'ordre d'évaluation.

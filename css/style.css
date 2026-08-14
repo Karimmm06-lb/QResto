@@ -704,3 +704,22 @@ input:focus, textarea:focus {
   }
   .squelette-hero, .squelette-bloc { animation: none; opacity: 0.6; }
 }
+
+/* Lien de retour discret sur les écrans authentifiés — évite le piège :
+   un visiteur qui atterrit par erreur sur /caisse ou /admin peut revenir
+   à la vitrine sans devoir retaper l'URL. */
+.lien-retour {
+  display: inline-block;
+  margin: 0 0 14px;
+  padding: 6px 0;
+  color: #6b5334;
+  font-family: 'Jost', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 13px;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+.lien-retour:hover, .lien-retour:focus-visible {
+  color: #c9a24a;
+  border-bottom-color: #c9a24a;
+}

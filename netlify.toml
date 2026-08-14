@@ -29,11 +29,9 @@
   status = 302
   force = false
 
-# 404 personnalisé aux couleurs du restaurant.
-[[redirects]]
-  from = "/*"
-  to = "/404.html"
-  status = 404
+# 404 personnalisé : Netlify sert /404.html automatiquement pour toute URL
+# qui n'existe pas — pas besoin d'une règle explicite, qui aurait risqué
+# d'intercepter des chemins valides selon l'ordre d'évaluation.
 
 # En-têtes de sécurité — CSP stricte, HSTS, protections navigateur.
 # Google Fonts et Supabase sont explicitement autorisés ; tout le reste

@@ -965,3 +965,26 @@ input:focus, textarea:focus {
 :root[data-theme="dark"] body.caisse .sub,
 :root[data-theme="dark"] body.caisse .tmeta,
 :root[data-theme="dark"] body.caisse .num { color: #8b949e; }
+
+/* Bandeau d'avertissement quand qr.html tourne en local — évite d'imprimer
+   12 QR qui ne fonctionneront que sur le PC du dev. Bien visible, rouge. */
+.alerte-local {
+  background: #ffe6d9;
+  color: #8a2b0a;
+  border: 1px solid #f5a582;
+  border-left: 4px solid #d94a1c;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 12px 20px;
+  font-family: 'Jost', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.alerte-local strong { display: block; margin-bottom: 4px; }
+.alerte-local code {
+  background: rgba(0,0,0,0.06);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+@media print { .alerte-local { display: none; } }

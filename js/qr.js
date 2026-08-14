@@ -45,6 +45,23 @@ async function ouvrirSession(user) {
   // mode « sur place »). client.html redirige vers resto.html pour couvrir
   // les QR déjà imprimés, mais les nouveaux QR utilisent l'URL propre.
   const base = location.href.replace(/qr\.html.*$/, '') + 'resto.html?t=';
+
+  // Garde-fou : générer les QR depuis localhost produit des URLs qui ne
+  // fonctionnent que sur le PC du développeur. Un caissier qui imprimerait
+  // 12 QR bidons et les poserait sur les tables perdrait un service entier.
+  const enLocal = /^(localhost|127\.|10\.|192\.168\.)/i.test(location.hostname);
+  if (enLocal) {
+    const avert = document.createElement('div');
+    avert.className = 'alerte-local';
+    avert.innerHTML = `
+      <strong>⚠️ Vous êtes en local (${location.origin}).</strong>
+      Ces QR pointent vers votre PC — ils ne fonctionneront pas
+      depuis un téléphone au restaurant. Ouvrez le site en ligne
+      (par exemple <code>https://qresto-team.netlify.app/qr.html</code>)
+      pour imprimer les QR à distribuer.`;
+    $('#consigne').parentNode.insertBefore(avert, $('#consigne'));
+  }
+
   $('#consigne').textContent =
     `${tables.length} tables · imprimez cette page, découpez, et posez un carton par table. `
     + `Les QR pointent vers ${location.origin}.`;

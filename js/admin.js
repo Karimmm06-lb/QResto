@@ -71,7 +71,9 @@ async function rendreDisponibilite() {
 
 async function rendreQr() {
   const tables = await Store.tables(restaurantId);
-  const base = location.href.replace(/admin\.html.*$/, '') + 'resto.html?t=';
+  // Chemin absolu : robuste face aux URLs courtes (/admin) où la regex sur
+  // « admin.html » ne matcherait rien. Cf. bug qr.js du 2026-08-14.
+  const base = location.origin + '/resto.html?t=';
   $('#qrs').innerHTML = tables.map(t => {
     const url = base + t.qr_token;
     const src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data='

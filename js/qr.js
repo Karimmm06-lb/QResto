@@ -42,9 +42,11 @@ async function ouvrirSession(user) {
   ]);
 
   // Les QR pointent désormais vers la vitrine (qui prend le relais avec le
-  // mode « sur place »). client.html redirige vers resto.html pour couvrir
-  // les QR déjà imprimés, mais les nouveaux QR utilisent l'URL propre.
-  const base = location.href.replace(/qr\.html.*$/, '') + 'resto.html?t=';
+  // mode « sur place »). On construit l'URL depuis location.origin + un
+  // chemin absolu — la version qui bricolait location.href avec une regex
+  // sur « qr.html » cassait quand on ouvrait la page via l'URL courte /qr :
+  // la regex ne matchait rien et l'on obtenait /qrresto.html (bug 2026-08-14).
+  const base = location.origin + '/resto.html?t=';
 
   // Garde-fou : générer les QR depuis localhost produit des URLs qui ne
   // fonctionnent que sur le PC du développeur. Un caissier qui imprimerait

@@ -2,52 +2,20 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="refresh" content="0; url=resto.html?r=team-restaurant">
+  <link rel="canonical" href="https://qresto-team.netlify.app/resto.html?r=team-restaurant">
+  <title>Team Restaurant — Aïn Benian, Alger</title>
+  <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>QResto</title>
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <script>
+    // Redirection instantanée : la vraie page d'accueil est la vitrine.
+    // Balise meta refresh pour couvrir le cas sans JavaScript.
+    location.replace('resto.html?r=team-restaurant');
+  </script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">Q<span>Resto</span></div>
-    <div class="spacer"></div>
-    <a class="btn sm ghost" href="caisse.html">🧾 Caisse</a>
-    <a class="btn sm ghost" href="admin.html">📊 Gérant</a>
-  </header>
-
-  <main class="wrap">
-    <h1>Commande par QR code</h1>
-    <p class="sub">Le client scanne le QR de sa table, commande sur son téléphone, et paie en
-      caisse. Le caissier reçoit la commande en direct et imprime le ticket pour le cuistot.</p>
-
-    <div class="grid cols">
-      <div class="card">
-        <h2 style="margin-top:0">📱 Le client</h2>
-        <p class="sub">Scanne le QR posé sur la table. Aucune application, aucun compte.</p>
-      </div>
-      <div class="card">
-        <h2 style="margin-top:0">🧾 La caisse</h2>
-        <p class="sub">Reçoit la commande en direct avec un bip, imprime le ticket cuisine,
-          encaisse la table.</p>
-        <a class="btn wide blue" href="caisse.html"
-           style="display:block;text-align:center;text-decoration:none">Ouvrir la caisse</a>
-      </div>
-      <div class="card">
-        <h2 style="margin-top:0">📊 Le gérant</h2>
-        <p class="sub">Statistiques de vente, disponibilité des plats, QR codes des tables
-          à imprimer.</p>
-        <a class="btn wide ghost" href="admin.html"
-           style="display:block;text-align:center;text-decoration:none">Ouvrir l'espace gérant</a>
-      </div>
-    </div>
-
-    <h2>Comment tester</h2>
-    <div class="card">
-      <p class="sub" style="margin:0">
-        Connectez-vous à l'espace gérant pour afficher les QR codes des tables, puis scannez-en
-        un avec votre téléphone. Gardez la page caisse ouverte à côté : la commande y apparaît
-        en moins de trois secondes.
-      </p>
-    </div>
-  </main>
+  <p style="font-family:Georgia,serif;text-align:center;padding:60px 20px">
+    Redirection vers <a href="resto.html?r=team-restaurant">la carte</a>…
+  </p>
 </body>
 </html>

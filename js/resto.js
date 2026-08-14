@@ -84,6 +84,18 @@ function erreur(message) {
   setTimeout(() => { b.style.display = 'none'; }, 7000);
 }
 
+// Bandeau flottant discret pour les confirmations positives.
+// Programmé pour ne jamais empiler : un nouveau message remplace l'ancien.
+let toastTimer = null;
+function toast(message) {
+  const t = $('#toast');
+  if (!t) return;
+  t.textContent = message;
+  t.classList.add('visible');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('visible'), 1800);
+}
+
 function creneaux() {
   const out = ['<option value="">Dès que possible</option>'];
   const d = new Date(Date.now() + resto.delai_min_minutes * 60000);
@@ -379,6 +391,7 @@ document.addEventListener('click', async e => {
     const id = plus.dataset.plus;
     panier[id] = panier[id] || { qty: 0, nom: plus.dataset.nom, prix: Number(plus.dataset.prix) };
     panier[id].qty++;
+    toast(`${plus.dataset.nom} ajouté au panier`);
     rendreCommande();
   }
   if (moins) {

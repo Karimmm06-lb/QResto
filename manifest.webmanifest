@@ -1,0 +1,16 @@
+{
+  "name": "QResto — Team Restaurant",
+  "short_name": "QResto",
+  "description": "Commande par QR code — Team Restaurant, Aïn Benian, Alger.",
+  "start_url": "/resto.html?r=team-restaurant",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8f3ea",
+  "theme_color": "#c9a24a",
+  "lang": "fr",
+  "categories": ["food", "business", "shopping"],
+  "icons": [
+    { "src": "img/favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any maskable" }
+  ]
+}

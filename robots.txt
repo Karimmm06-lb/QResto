@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /resto.html
+
+# Espaces authentifiés : rien à indexer, tout est privé.
+Disallow: /caisse.html
+Disallow: /admin.html
+Disallow: /qr.html
+Disallow: /client.html
+
+Sitemap: https://qresto-team.netlify.app/sitemap.xml

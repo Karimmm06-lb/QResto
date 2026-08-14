@@ -626,3 +626,81 @@ input:focus, textarea:focus {
   .vrow { padding-inline-start: 68px; }
   h1 { font-size: 30px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   COUCHE POLISH — squelettes de chargement, toast, focus visible, motion.
+   Ajouts pour améliorer la perception de qualité pendant les états de
+   transition (chargement de la carte, envoi d'une commande, etc.).
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Cache visuel accessible : le texte reste lu par les lecteurs d'écran. */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------------------------------------------- squelette de chargement */
+/* Affiché tant que la carte n'est pas chargée : évite le « Chargement… »
+   sec et donne au visiteur l'impression que quelque chose vient. */
+.squelette { padding: 0 0 40px; }
+.squelette-hero {
+  height: 320px; margin-bottom: 24px;
+  background: linear-gradient(120deg, #efe6d1 25%, #f7f0e1 50%, #efe6d1 75%);
+  background-size: 200% 100%;
+  animation: chatoiement 1.4s ease-in-out infinite;
+}
+.squelette-carte { max-width: 640px; margin: 0 auto; padding: 0 16px; }
+.squelette-bloc {
+  height: 120px; border-radius: 8px; margin-bottom: 16px;
+  background: linear-gradient(120deg, #efe6d1 25%, #f7f0e1 50%, #efe6d1 75%);
+  background-size: 200% 100%;
+  animation: chatoiement 1.4s ease-in-out infinite;
+}
+.squelette-bloc:nth-child(2) { animation-delay: 0.15s; }
+.squelette-bloc:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes chatoiement {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* ------------------------------------------------------------- toast */
+/* Petit bandeau flottant en bas d'écran pour les confirmations légères
+   (article ajouté au panier, commande envoyée). N'interrompt pas le flux. */
+.toast {
+  position: fixed; left: 50%; bottom: 90px; transform: translate(-50%, 20px);
+  padding: 12px 22px; border-radius: 999px;
+  background: #1a0f05; color: #f8f3ea;
+  font-family: 'Jost', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px; font-weight: 500; letter-spacing: 0.3px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.28);
+  opacity: 0; pointer-events: none;
+  transition: opacity 240ms ease, transform 240ms ease;
+  z-index: 9999;
+  max-width: min(90vw, 380px);
+  text-align: center;
+}
+.toast.visible {
+  opacity: 1; transform: translate(-50%, 0);
+}
+
+/* ----------------------------------------------- focus visible clavier */
+/* Contour or élégant lors de la navigation clavier, invisible à la souris. */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid #c9a24a;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* --------------------------------------------- prefers-reduced-motion */
+/* Respecte le réglage système : accessibilité + confort. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .squelette-hero, .squelette-bloc { animation: none; opacity: 0.6; }
+}

@@ -2,21 +2,96 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Restaurant</title>
-  <meta name="description" content="Carte, horaires et contact.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#c9a24a">
+  <meta name="color-scheme" content="light">
+
+  <title>Team Restaurant — Pizza au feu de bois à Aïn Benian, Alger</title>
+  <meta name="description" content="La carte, l'ambiance et la commande en ligne de Team Restaurant à Aïn Benian, Alger. Pizza et calzone au feu de bois, grillades, burgers, salades, café. Commande sur place par QR code, à emporter ou en livraison.">
+  <meta name="author" content="Team Restaurant">
+  <link rel="canonical" href="https://qresto-team.netlify.app/resto.html?r=team-restaurant">
+
+  <!-- Partage social : WhatsApp, Facebook, Messenger, LinkedIn -->
+  <meta property="og:type" content="restaurant.restaurant">
+  <meta property="og:site_name" content="Team Restaurant">
+  <meta property="og:title" content="Team Restaurant — Aïn Benian, Alger">
+  <meta property="og:description" content="Pizza & calzone au feu de bois, grillades, burgers, salades, café. Commande sur place, à emporter ou en livraison.">
+  <meta property="og:url" content="https://qresto-team.netlify.app/resto.html?r=team-restaurant">
+  <meta property="og:image" content="https://qresto-team.netlify.app/img/og-image.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="fr_FR">
+
+  <!-- Partage Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Team Restaurant — Aïn Benian, Alger">
+  <meta name="twitter:description" content="Pizza & calzone au feu de bois. Commande sur place, à emporter ou en livraison.">
+  <meta name="twitter:image" content="https://qresto-team.netlify.app/img/og-image.svg">
+
+  <!-- Icônes et PWA -->
+  <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+  <link rel="apple-touch-icon" href="img/favicon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <!-- Typographie — preconnect + preload de la feuille pour éviter le FOUT -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=18">
+
+  <!-- Feuille locale -->
+  <link rel="stylesheet" href="css/style.css?v=19">
+
+  <!-- Données structurées Restaurant : Google peut afficher un panneau riche
+       (adresse, horaires, téléphone) dans les résultats de recherche. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    "name": "Team Restaurant",
+    "description": "Pizza et calzone au feu de bois, grillades, burgers, salades, café.",
+    "servesCuisine": ["Italienne", "Grillades", "Burgers"],
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Route Nationale 11",
+      "addressLocality": "Aïn Benian",
+      "addressRegion": "Alger",
+      "addressCountry": "DZ"
+    },
+    "telephone": "+213549622404",
+    "url": "https://qresto-team.netlify.app/resto.html?r=team-restaurant",
+    "acceptsReservations": false,
+    "priceRange": "500-2000 DA"
+  }
+  </script>
 </head>
 <body class="vitrine">
+  <noscript>
+    <div style="max-width:640px;margin:60px auto;padding:24px;background:#fff;border:1px solid #e6dccb;border-radius:12px;font-family:Georgia,serif;text-align:center">
+      <h1 style="margin-top:0;color:#3a2416">JavaScript est nécessaire</h1>
+      <p>Cette page utilise JavaScript pour afficher la carte et prendre votre commande.
+         Activez-le dans votre navigateur, ou appelez-nous directement au
+         <a href="tel:+213549622404" style="color:#c9a24a;font-weight:600">05 49 62 24 04</a>.</p>
+    </div>
+  </noscript>
+
   <main id="page">
-    <div class="empty">Chargement…</div>
+    <div class="squelette" aria-busy="true" aria-live="polite">
+      <div class="squelette-hero"></div>
+      <div class="squelette-carte">
+        <div class="squelette-bloc"></div>
+        <div class="squelette-bloc"></div>
+        <div class="squelette-bloc"></div>
+      </div>
+      <span class="visually-hidden">Chargement de la carte…</span>
+    </div>
   </main>
+
+  <!-- Toast pour les feedbacks légers (ajout au panier, envoi de commande) -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="js/config.js?v=10"></script>
   <script src="js/store.js?v=10"></script>
-  <script src="js/resto.js?v=16"></script>
+  <script src="js/resto.js?v=17"></script>
 </body>
 </html>

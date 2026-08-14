@@ -25,11 +25,27 @@
   status = 302
   force = false
 
-# En-têtes de sécurité minimaux — pas d'iframe, pas de reniflage MIME,
-# HTTPS forcé par Netlify de toute façon.
+# En-têtes de sécurité — CSP stricte, HSTS, protections navigateur.
+# Google Fonts et Supabase sont explicitement autorisés ; tout le reste
+# est interdit par défaut, ce qui bloque les injections tierces.
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+
+# Cache long pour les assets versionnés (CSS/JS avec ?v=N).
+# Les HTML restent en no-cache pour que les changements soient visibles.
+[[headers]]
+  for = "/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

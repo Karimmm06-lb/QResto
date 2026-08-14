@@ -18,11 +18,162 @@ const slug    = params.get('r');
 const qrToken = params.get('t');
 
 let resto = null;
-let tableNumero = null;   // renseigné uniquement si arrivée par QR
-let vue = 'vitrine';       // vitrine | commande | coordonnees | confirmation
-let mode = null;           // sur_place | a_emporter | livraison
+let tableNumero = null;
+let vue = 'vitrine';
+let mode = null;
 let panier = {};
 let cleEnvoi = null;
+
+// Langue courante : préférence stockée > paramètre URL > navigateur > FR.
+// L'arabe passe le document en RTL.
+const LANGUES = ['fr', 'ar', 'en'];
+function langueInitiale() {
+  const stockee = localStorage.getItem('qresto.lang');
+  if (stockee && LANGUES.includes(stockee)) return stockee;
+  const p = params.get('lang');
+  if (p && LANGUES.includes(p)) return p;
+  const navL = (navigator.language || 'fr').slice(0, 2);
+  return LANGUES.includes(navL) ? navL : 'fr';
+}
+let lang = langueInitiale();
+
+// Traductions des libellés d'interface. La carte elle-même vient de la base
+// (nom_fr / nom_ar / nom_en, pareil pour les descriptions et les variantes).
+const T = {
+  fr: {
+    bienvenueTable: n => `Bienvenue à votre table N° ${n}`,
+    invitSurPlace: 'Composez votre commande depuis votre téléphone.<br>Vous paierez au comptoir à la fin du service.',
+    commanderEnLigne: 'Commander en ligne',
+    invitDistance: 'Vous réglez au retrait ou à la livraison.<br>Nous vous appelons pour confirmer.',
+    commanderTable: 'Commandez à table',
+    invitScan: 'Scannez le QR code posé sur votre table :<br>la carte s\'ouvre sur votre téléphone.',
+    surPlaceBtn: n => `Sur place — Table ${n}`,
+    aEmporterBtn: 'À emporter',
+    livraisonBtn: 'Livraison',
+    epuise: 'Épuisé',
+    piedCarte: 'Carte tenue à jour par le restaurant.',
+    votreCommande: 'Votre commande',
+    vosCoordonnees: 'Vos coordonnées',
+    nomPh: 'Votre nom',
+    telPh: 'Votre téléphone',
+    adressePh: 'Votre adresse — rue, immeuble, étage',
+    notePh: 'Une remarque ?',
+    desQuePossible: 'Dès que possible',
+    envoyerCuisine: 'Envoyer à la cuisine',
+    continuer: 'Continuer',
+    envoyerCommande: 'Envoyer la commande',
+    articles: n => `${n} article${n > 1 ? 's' : ''}`,
+    envoi: 'Envoi…',
+    confirmSurPlace: 'Commande envoyée en cuisine',
+    confirmDistance: 'Commande envoyée',
+    commandeN: 'Commande N°',
+    total: 'Total',
+    sousTotal: 'Sous-total',
+    livraisonLigne: 'Livraison',
+    retourCarte: 'Retour à la carte',
+    reglezRetrait: 'Vous réglez au comptoir en fin de service.',
+    reglezLivraison: 'Vous réglez au livreur.',
+    reglezEmporter: 'Vous réglez au comptoir, au retrait.',
+    frais: 'Frais de livraison',
+    avisLivraison: 'Les viandes, glaces et boissons chaudes ne sont pas proposées en livraison.',
+    ajouteAuPanier: nom => `${nom} ajouté au panier`,
+    mentionsLegales: 'Mentions légales',
+    contact: 'Contact',
+    propulse: 'Propulsé par',
+  },
+  ar: {
+    bienvenueTable: n => `مرحباً بكم على طاولتكم رقم ${n}`,
+    invitSurPlace: 'اطلبوا من هاتفكم.<br>الدفع عند المحاسبة في نهاية الخدمة.',
+    commanderEnLigne: 'اطلب عبر الإنترنت',
+    invitDistance: 'الدفع عند الاستلام أو التوصيل.<br>سنتصل بكم للتأكيد.',
+    commanderTable: 'اطلب من الطاولة',
+    invitScan: 'امسحوا رمز QR الموجود على طاولتكم:<br>ستفتح القائمة على هاتفكم.',
+    surPlaceBtn: n => `في المطعم — طاولة ${n}`,
+    aEmporterBtn: 'للأخذ',
+    livraisonBtn: 'توصيل',
+    epuise: 'نفدت الكمية',
+    piedCarte: 'قائمة يحدّثها المطعم.',
+    votreCommande: 'طلبكم',
+    vosCoordonnees: 'بياناتكم',
+    nomPh: 'الاسم',
+    telPh: 'رقم الهاتف',
+    adressePh: 'العنوان — الشارع، العمارة، الطابق',
+    notePh: 'ملاحظة؟',
+    desQuePossible: 'في أقرب وقت ممكن',
+    envoyerCuisine: 'إرسال إلى المطبخ',
+    continuer: 'متابعة',
+    envoyerCommande: 'إرسال الطلب',
+    articles: n => `${n} صنف${n > 1 ? '' : ''}`,
+    envoi: '...جارٍ الإرسال',
+    confirmSurPlace: 'أُرسل الطلب إلى المطبخ',
+    confirmDistance: 'أُرسل الطلب',
+    commandeN: 'الطلب رقم',
+    total: 'المجموع',
+    sousTotal: 'المجموع الفرعي',
+    livraisonLigne: 'التوصيل',
+    retourCarte: 'العودة إلى القائمة',
+    reglezRetrait: 'الدفع عند المحاسبة في نهاية الخدمة.',
+    reglezLivraison: 'الدفع لعامل التوصيل.',
+    reglezEmporter: 'الدفع عند الاستلام في المحاسبة.',
+    frais: 'رسوم التوصيل',
+    avisLivraison: 'اللحوم والمثلجات والمشروبات الساخنة غير متوفرة للتوصيل.',
+    ajouteAuPanier: nom => `تمت إضافة ${nom} إلى السلة`,
+    mentionsLegales: 'الإشعارات القانونية',
+    contact: 'اتصال',
+    propulse: 'مدعوم من',
+  },
+  en: {
+    bienvenueTable: n => `Welcome to table N° ${n}`,
+    invitSurPlace: 'Place your order from your phone.<br>Pay at the counter at the end of your meal.',
+    commanderEnLigne: 'Order online',
+    invitDistance: 'Pay on pickup or delivery.<br>We\'ll call you to confirm.',
+    commanderTable: 'Order at your table',
+    invitScan: 'Scan the QR code on your table:<br>the menu opens on your phone.',
+    surPlaceBtn: n => `Dine in — Table ${n}`,
+    aEmporterBtn: 'Takeaway',
+    livraisonBtn: 'Delivery',
+    epuise: 'Sold out',
+    piedCarte: 'Menu maintained by the restaurant.',
+    votreCommande: 'Your order',
+    vosCoordonnees: 'Your details',
+    nomPh: 'Your name',
+    telPh: 'Your phone',
+    adressePh: 'Your address — street, building, floor',
+    notePh: 'Any note?',
+    desQuePossible: 'As soon as possible',
+    envoyerCuisine: 'Send to the kitchen',
+    continuer: 'Continue',
+    envoyerCommande: 'Send the order',
+    articles: n => `${n} item${n > 1 ? 's' : ''}`,
+    envoi: 'Sending…',
+    confirmSurPlace: 'Order sent to the kitchen',
+    confirmDistance: 'Order sent',
+    commandeN: 'Order N°',
+    total: 'Total',
+    sousTotal: 'Subtotal',
+    livraisonLigne: 'Delivery',
+    retourCarte: 'Back to menu',
+    reglezRetrait: 'Pay at the counter at the end of your meal.',
+    reglezLivraison: 'Pay the delivery driver.',
+    reglezEmporter: 'Pay at the counter on pickup.',
+    frais: 'Delivery fee',
+    avisLivraison: 'Meat dishes, ice cream and hot drinks are not offered for delivery.',
+    ajouteAuPanier: nom => `${nom} added to cart`,
+    mentionsLegales: 'Legal notice',
+    contact: 'Contact',
+    propulse: 'Powered by',
+  },
+};
+const tr = () => T[lang];
+
+// Résout la valeur multilingue d'un champ (nom, description, libellé).
+// Retombe sur le français si la traduction manque.
+const ml = (obj, champ) => obj?.[`${champ}_${lang}`] || obj?.[`${champ}_fr`] || '';
+
+function appliquerLangue() {
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+}
 
 const $ = s => document.querySelector(s);
 const page = () => $('#page');
@@ -41,6 +192,21 @@ const photoCategorie = nom => {
   PHOTOS_UTILISEES.add(src);
   return src;
 };
+
+// Aplatit la carte reçue (multilingue) sur la langue courante : chaque
+// catégorie/plat/variante gagne .nom, .description, .libelle. Rappelée quand
+// l'utilisateur change de langue — la carte se rerend sans nouveau fetch.
+function normaliserCarte() {
+  if (!resto?.carte) return;
+  resto.carte.forEach(c => {
+    c.nom = ml(c, 'nom');
+    c.plats.forEach(p => {
+      p.nom = ml(p, 'nom');
+      p.description = ml(p, 'desc');
+      (p.prix || []).forEach(v => { v.libelle = ml(v, 'libelle') || 'Standard'; });
+    });
+  });
+}
 
 // ------------------------------------------------------------------ outils
 function plats() {
@@ -71,9 +237,9 @@ const frais = () => (mode === 'livraison' && zone()) ? Number(zone().frais) : 0;
 const total = () => sousTotal() + frais();
 
 const nomMode = () => ({
-  sur_place:  `Table ${tableNumero}`,
-  a_emporter: 'À emporter',
-  livraison:  'Livraison',
+  sur_place:  `${lang === 'ar' ? 'طاولة' : 'Table'} ${tableNumero}`,
+  a_emporter: tr().aEmporterBtn,
+  livraison:  tr().livraisonBtn,
 })[mode] || '';
 
 function erreur(message) {
@@ -97,7 +263,7 @@ function toast(message) {
 }
 
 function creneaux() {
-  const out = ['<option value="">Dès que possible</option>'];
+  const out = [`<option value="">${tr().desQuePossible}</option>`];
   const d = new Date(Date.now() + resto.delai_min_minutes * 60000);
   d.setMinutes(Math.ceil(d.getMinutes() / 15) * 15, 0, 0);
   const fin = new Date(); fin.setHours(23, 45, 0, 0);
@@ -119,26 +285,30 @@ function rendreVitrine() {
 
   // Les 3 modes de commande. Sur place n'apparaît que si un QR a été scanné.
   const boutons = [
-    qrToken && `<button class="btn" data-mode="sur_place">Sur place — Table ${tableNumero}</button>`,
-    resto.emporter_actif && `<button class="btn" data-mode="a_emporter">À emporter</button>`,
-    resto.livraison_active && `<button class="btn" data-mode="livraison">Livraison</button>`,
+    qrToken && `<button class="btn" data-mode="sur_place">${tr().surPlaceBtn(tableNumero)}</button>`,
+    resto.emporter_actif && `<button class="btn" data-mode="a_emporter">${tr().aEmporterBtn}</button>`,
+    resto.livraison_active && `<button class="btn" data-mode="livraison">${tr().livraisonBtn}</button>`,
   ].filter(Boolean).join('');
+
+  // Sélecteur de langue en haut à droite. Cliqué : bascule + re-normalise + rerend.
+  const selecteurLang = LANGUES.map(L => `
+    <button class="lang-btn ${L === lang ? 'actif' : ''}" data-lang="${L}"
+      aria-pressed="${L === lang}">${L.toUpperCase()}</button>`).join('');
 
   const bandeauCommander = qrToken ? `
     <div class="vqr reveal">
-      <strong>Bienvenue à votre table N° ${tableNumero}</strong>
-      <p>Composez votre commande depuis votre téléphone.<br>
-         Vous paierez au comptoir à la fin du service.</p>
+      <strong>${tr().bienvenueTable(tableNumero)}</strong>
+      <p>${tr().invitSurPlace}</p>
       <div class="vliens">${boutons}</div>
     </div>` : (boutons ? `
     <div class="vqr reveal">
-      <strong>Commander en ligne</strong>
-      <p>Vous réglez au retrait ou à la livraison.<br>Nous vous appelons pour confirmer.</p>
+      <strong>${tr().commanderEnLigne}</strong>
+      <p>${tr().invitDistance}</p>
       <div class="vliens">${boutons}</div>
     </div>` : `
     <div class="vqr reveal">
-      <strong>Commandez à table</strong>
-      <p>Scannez le QR code posé sur votre table :<br>la carte s'ouvre sur votre téléphone.</p>
+      <strong>${tr().commanderTable}</strong>
+      <p>${tr().invitScan}</p>
     </div>`);
 
   const numero = nom => {
@@ -164,7 +334,7 @@ function rendreVitrine() {
       ${c.plats.map(p => `
         <div class="vplat ${p.disponible ? '' : 'epuise'}">
           <div class="vplat-tete">
-            <span class="vnom">${p.nom}${p.disponible ? '' : ' <span class="chip payee">Épuisé</span>'}</span>
+            <span class="vnom">${p.nom}${p.disponible ? '' : ` <span class="chip payee">${tr().epuise}</span>`}</span>
             <span class="lead"></span>
             <span class="vprix">${(p.prix||[]).map(v =>
               `<span class="p">${v.libelle !== 'Standard' ? `<i>${v.libelle}</i> ` : ''}${fmt.prix(v.montant)}</span>`
@@ -177,6 +347,7 @@ function rendreVitrine() {
 
   page().innerHTML = `
     <div id="erreur" class="alerte"></div>
+    <div class="selecteur-lang" role="group" aria-label="Langue">${selecteurLang}</div>
     <header class="vhero">
       <div class="kicker">${resto.ville || ''}</div>
       <h1>${resto.nom}</h1>
@@ -193,7 +364,7 @@ function rendreVitrine() {
     ${bandeauCommander}
 
     <div class="wrap narrow">${carte}
-      <p class="vpied">Carte tenue à jour par le restaurant.</p>
+      <p class="vpied">${tr().piedCarte}</p>
     </div>
 
     <footer class="vfooter">
@@ -205,14 +376,13 @@ function rendreVitrine() {
           </div>
         </div>
         <nav class="vfooter-liens" aria-label="Pied de page">
-          <a href="mentions-legales.html">Mentions légales</a>
-          <a href="tel:${(resto.telephone||'').replace(/\s/g,'')}">Contact</a>
+          <a href="mentions-legales.html">${tr().mentionsLegales}</a>
+          <a href="tel:${(resto.telephone||'').replace(/\s/g,'')}">${tr().contact}</a>
           ${resto.facebook ? `<a href="${resto.facebook}" target="_blank" rel="noopener">Facebook</a>` : ''}
           ${resto.instagram ? `<a href="${resto.instagram}" target="_blank" rel="noopener">Instagram</a>` : ''}
         </nav>
         <div class="vfooter-tech">
-          Propulsé par <strong>QResto</strong> —
-          commande par QR code pour les restaurants algériens.
+          ${tr().propulse} <strong>QResto</strong>
         </div>
       </div>
     </footer>`;
@@ -241,8 +411,7 @@ function animerAuScroll() {
 function rendreCommande() {
   const cats = commandables();
   const avis = mode === 'livraison'
-    ? `<p class="sub" style="margin-top:14px">
-         Les viandes, glaces et boissons chaudes ne sont pas proposées en livraison.</p>`
+    ? `<p class="sub" style="margin-top:14px">${tr().avisLivraison}</p>`
     : '';
 
   page().innerHTML = `
@@ -283,7 +452,7 @@ function rendreCommande() {
       <div class="inner">
         <div><div class="cnt" id="cnt"></div><div class="tot" id="tot"></div></div>
         <div class="spacer"></div>
-        <button class="btn" id="suite">${mode === 'sur_place' ? 'Envoyer à la cuisine' : 'Continuer'}</button>
+        <button class="btn" id="suite">${mode === 'sur_place' ? tr().envoyerCuisine : tr().continuer}</button>
       </div>
     </div>`;
   majBarre();
@@ -294,7 +463,7 @@ function majBarre() {
   const bar = $('#cartbar');
   if (!bar) return;
   bar.style.display = n ? 'block' : 'none';
-  $('#cnt').textContent = `${n} article${n > 1 ? 's' : ''}`;
+  $('#cnt').textContent = tr().articles(n);
   $('#tot').textContent = fmt.prix(sousTotal());
 }
 
@@ -316,37 +485,36 @@ function rendreCoordonnees() {
       <span class="badge">${nomMode()}</span>
     </header>
     <main class="wrap narrow">
-      <h1>Votre commande</h1>
+      <h1>${tr().votreCommande}</h1>
       <div class="card">
         ${L.map(l => `<div class="bar"><span class="lbl" style="flex:1">${l.qty} × ${l.nom}</span>
           <span class="n" style="flex:0 0 auto">${fmt.prix(l.prix * l.qty)}</span></div>`).join('')}
         <div class="bar" id="ligneFrais" style="display:none">
-          <span class="lbl" style="flex:1">Frais de livraison</span>
+          <span class="lbl" style="flex:1">${tr().frais}</span>
           <span class="n" style="flex:0 0 auto" id="montantFrais"></span>
         </div>
         <div class="bar" style="border-top:1px solid var(--bord);padding-top:8px;margin-top:8px">
-          <span class="lbl" style="flex:1;font-weight:800">Total</span>
+          <span class="lbl" style="flex:1;font-weight:800">${tr().total}</span>
           <span class="n" style="flex:0 0 auto;font-weight:800;font-size:16px" id="totalFinal"></span>
         </div>
       </div>
 
-      <h2>Vos coordonnées</h2>
+      <h2>${tr().vosCoordonnees}</h2>
       <div class="card">
-        <input id="nom" placeholder="Votre nom" maxlength="40" style="margin-bottom:9px">
-        <input id="tel" type="tel" placeholder="Votre téléphone" maxlength="20" style="margin-bottom:9px">
+        <input id="nom" placeholder="${tr().nomPh}" maxlength="40" style="margin-bottom:9px">
+        <input id="tel" type="tel" placeholder="${tr().telPh}" maxlength="20" style="margin-bottom:9px">
         ${mode === 'livraison' ? `
           <select id="zone" style="margin-bottom:9px">${zonesOpt}</select>
-          <textarea id="adresse" rows="2" placeholder="Votre adresse — rue, immeuble, étage"
+          <textarea id="adresse" rows="2" placeholder="${tr().adressePh}"
             style="margin-bottom:9px"></textarea>` : ''}
         <select id="creneau" style="margin-bottom:9px">${creneaux()}</select>
-        <textarea id="note" rows="2" placeholder="Une remarque ?"></textarea>
+        <textarea id="note" rows="2" placeholder="${tr().notePh}"></textarea>
       </div>
 
       <p class="sub" style="margin-top:14px">
-        Le restaurant vous appellera pour confirmer avant de préparer.
-        Vous réglez ${mode === 'livraison' ? 'à la livraison' : 'au retrait'}.
+        ${mode === 'livraison' ? tr().reglezLivraison : tr().reglezEmporter}
       </p>
-      <button class="btn wide" id="envoyer">Envoyer la commande</button>
+      <button class="btn wide" id="envoyer">${tr().envoyerCommande}</button>
     </main>`;
 
   $('#nom').value = localStorage.getItem('qresto.nom') || '';
@@ -364,14 +532,10 @@ function majTotaux() {
 
 // ----------------------------------------------------------- confirmation
 function rendreConfirmation(cmd) {
-  const titre = mode === 'sur_place'
-    ? `Commande envoyée en cuisine`
-    : `Commande envoyée`;
+  const titre = mode === 'sur_place' ? tr().confirmSurPlace : tr().confirmDistance;
   const message = mode === 'sur_place'
-    ? `Le personnel apporte votre commande à la table N° ${tableNumero}.<br>
-       Vous réglez au comptoir en fin de service.`
-    : `${resto.nom} va vous appeler pour confirmer avant de préparer.<br>
-       Vous réglez ${mode === 'livraison' ? 'au livreur' : 'au comptoir, au retrait'}.`;
+    ? tr().reglezRetrait
+    : (mode === 'livraison' ? tr().reglezLivraison : tr().reglezEmporter);
 
   const totalAffiche = cmd.total ?? cmd.sous_total ?? sousTotal();
   const sousTotalCmd = cmd.sous_total ?? totalAffiche;
@@ -382,26 +546,42 @@ function rendreConfirmation(cmd) {
       <div class="card" style="text-align:center;margin-top:40px">
         <div class="vsceau">✦</div>
         <h1 style="margin-top:8px">${titre}</h1>
-        <p class="sub">Commande N° ${cmd.numero}</p>
+        <p class="sub">${tr().commandeN} ${cmd.numero}</p>
         <div class="badge" style="font-size:15px;padding:10px 16px">${nomMode()}</div>
         <div style="border-top:1px dashed var(--bord);margin-top:18px;padding-top:12px">
           ${mode !== 'sur_place' ? `
-            <div class="bar"><span class="lbl" style="flex:1">Sous-total</span>
+            <div class="bar"><span class="lbl" style="flex:1">${tr().sousTotal}</span>
               <span class="n" style="flex:0 0 auto">${fmt.prix(sousTotalCmd)}</span></div>
             ${fraisCmd ? `<div class="bar">
-              <span class="lbl" style="flex:1">Livraison</span>
+              <span class="lbl" style="flex:1">${tr().livraisonLigne}</span>
               <span class="n" style="flex:0 0 auto">${fmt.prix(fraisCmd)}</span></div>` : ''}` : ''}
-          <div class="bar"><span class="lbl" style="flex:1;font-weight:800">Total</span>
+          <div class="bar"><span class="lbl" style="flex:1;font-weight:800">${tr().total}</span>
             <span class="n" style="flex:0 0 auto;font-weight:800">${fmt.prix(totalAffiche)}</span></div>
         </div>
         <p class="sub" style="margin-top:18px">${message}</p>
-        <button class="btn ghost wide" id="retourAccueil">Retour à la carte</button>
+        <button class="btn ghost wide" id="retourAccueil">${tr().retourCarte}</button>
       </div>
     </main>`;
 }
 
 // -------------------------------------------------------------- interactions
 document.addEventListener('click', async e => {
+  const btnLang = e.target.closest('[data-lang]');
+  if (btnLang) {
+    const nv = btnLang.dataset.lang;
+    if (LANGUES.includes(nv) && nv !== lang) {
+      lang = nv;
+      localStorage.setItem('qresto.lang', lang);
+      appliquerLangue();
+      normaliserCarte();
+      // Re-rendre la vue courante en gardant l'état (panier, mode, vue).
+      const vues = { vitrine: rendreVitrine, commande: rendreCommande,
+                     coordonnees: rendreCoordonnees };
+      (vues[vue] || rendreVitrine)();
+    }
+    return;
+  }
+
   const m = e.target.closest('[data-mode]');
   const plus = e.target.closest('[data-plus]');
   const moins = e.target.closest('[data-moins]');
@@ -412,7 +592,7 @@ document.addEventListener('click', async e => {
     const id = plus.dataset.plus;
     panier[id] = panier[id] || { qty: 0, nom: plus.dataset.nom, prix: Number(plus.dataset.prix) };
     panier[id].qty++;
-    toast(`${plus.dataset.nom} ajouté au panier`);
+    toast(tr().ajouteAuPanier(plus.dataset.nom));
     rendreCommande();
   }
   if (moins) {
@@ -440,7 +620,16 @@ document.addEventListener('change', e => { if (e.target.id === 'zone') majTotaux
 
 async function envoyer(bouton) {
   bouton = bouton || $('#envoyer') || $('#suite');
-  if (bouton) bouton.disabled = true;
+  // Feedback pendant l'appel réseau : bouton verrouillé, libellé remplacé
+  // par un indicateur en train de charger. Sur un réseau lent (edge Algérie
+  // à midi), le silence entre le clic et la confirmation inquiète.
+  let libelleOrig = null;
+  if (bouton) {
+    libelleOrig = bouton.textContent;
+    bouton.disabled = true;
+    bouton.classList.add('en-cours');
+    bouton.innerHTML = '<span class="spinner" aria-hidden="true"></span> Envoi…';
+  }
   if (!cleEnvoi) cleEnvoi = crypto.randomUUID();
 
   try {
@@ -482,7 +671,11 @@ async function envoyer(bouton) {
   } catch (err) {
     erreur(Store.messageErreur(err));
   } finally {
-    if (bouton) bouton.disabled = false;
+    if (bouton) {
+      bouton.disabled = false;
+      bouton.classList.remove('en-cours');
+      if (libelleOrig != null) bouton.textContent = libelleOrig;
+    }
   }
 }
 
@@ -493,6 +686,7 @@ async function envoyer(bouton) {
     return;
   }
   try {
+    appliquerLangue();
     if (qrToken) {
       resto = await Store.vitrineParJeton(qrToken);
       if (!resto) throw new Error('QR code invalide. Demandez au personnel.');
@@ -501,6 +695,7 @@ async function envoyer(bouton) {
       resto = await Store.vitrine(slug);
       if (!resto) throw new Error('Restaurant introuvable');
     }
+    normaliserCarte();
     document.title = `${resto.nom} — ${resto.ville}`;
     rendreVitrine();
   } catch (e) {

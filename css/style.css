@@ -852,3 +852,116 @@ input:focus, textarea:focus {
   .vfooter-liens { justify-content: flex-end; }
   .vfooter-tech { grid-column: 1 / -1; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   COUCHE FINITIONS PRO — spinner, sélecteur langue, RTL, dark caisse.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* -------------------------------------- spinner sur bouton d'envoi */
+.spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+  vertical-align: -2px;
+  margin-inline-end: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn.en-cours { cursor: wait; opacity: 0.85; }
+
+/* -------------------------------------- sélecteur de langue vitrine */
+.selecteur-lang {
+  position: absolute;
+  top: 14px; right: 14px;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(26, 15, 5, 0.55);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  z-index: 10;
+}
+[dir="rtl"] .selecteur-lang { right: auto; left: 14px; }
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: rgba(248, 243, 234, 0.7);
+  font-family: 'Jost', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 12px; font-weight: 500;
+  letter-spacing: 0.5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease;
+}
+.lang-btn:hover, .lang-btn:focus-visible {
+  color: #f8f3ea;
+  outline: none;
+}
+.lang-btn.actif {
+  background: #c9a24a;
+  color: #1a0f05;
+  cursor: default;
+}
+
+/* -------------------------------------- support RTL pour l'arabe */
+[dir="rtl"] body { text-align: right; }
+[dir="rtl"] .vhero h1,
+[dir="rtl"] .vslogan,
+[dir="rtl"] .vinfo,
+[dir="rtl"] .vqr,
+[dir="rtl"] .vcat h2 { text-align: center; }
+[dir="rtl"] .vplat-tete { direction: rtl; }
+[dir="rtl"] .badge { direction: rtl; }
+[dir="rtl"] .cartbar .inner { flex-direction: row-reverse; }
+
+/* -------------------------------------- dark mode CAISSE uniquement */
+/* Le caissier bosse jusqu'à minuit, la vitrine est vue à midi : le mode
+   sombre a du sens ici et pas ailleurs. Redéfinition ciblée des surfaces. */
+:root[data-theme="dark"] body.caisse {
+  background: #0d1117;
+  color: #e6edf3;
+}
+:root[data-theme="dark"] body.caisse .card,
+:root[data-theme="dark"] body.caisse .tablecard {
+  background: #161b22;
+  border-color: #30363d;
+  color: #e6edf3;
+}
+:root[data-theme="dark"] body.caisse .topbar {
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+}
+:root[data-theme="dark"] body.caisse .brand { color: #e6edf3; }
+:root[data-theme="dark"] body.caisse .brand span { color: #c9a24a; }
+:root[data-theme="dark"] body.caisse .btn.ghost {
+  border-color: #30363d;
+  color: #e6edf3;
+  background: transparent;
+}
+:root[data-theme="dark"] body.caisse .btn.ghost:hover { background: #21262d; }
+:root[data-theme="dark"] body.caisse input,
+:root[data-theme="dark"] body.caisse select,
+:root[data-theme="dark"] body.caisse textarea {
+  background: #0d1117;
+  color: #e6edf3;
+  border-color: #30363d;
+}
+:root[data-theme="dark"] body.caisse .attente-caisse {
+  background: #161b22;
+  border-color: #30363d;
+}
+:root[data-theme="dark"] body.caisse .ac-titre { color: #e6edf3; }
+:root[data-theme="dark"] body.caisse .ac-desc { color: #8b949e; }
+:root[data-theme="dark"] body.caisse .stat .v { color: #c9a24a; }
+:root[data-theme="dark"] body.caisse .stat .k { color: #8b949e; }
+:root[data-theme="dark"] body.caisse .empty { color: #8b949e; }
+:root[data-theme="dark"] body.caisse .cmd { border-color: #30363d; }
+:root[data-theme="dark"] body.caisse h1,
+:root[data-theme="dark"] body.caisse h2 { color: #e6edf3; }
+:root[data-theme="dark"] body.caisse .sub,
+:root[data-theme="dark"] body.caisse .tmeta,
+:root[data-theme="dark"] body.caisse .num { color: #8b949e; }

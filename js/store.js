@@ -32,6 +32,11 @@ const Store = (() => {
   // (contrat défini dans docs/03-conception.md §3.5).
   function messageErreur(e) {
     const brut = e?.message || String(e);
+    // Réseau — priorité haute : quand le téléphone perd le Wi-Fi du resto,
+    // ou que le serveur est temporairement indisponible, l'utilisateur ne
+    // doit pas voir « TypeError: Failed to fetch ».
+    if (estErreurReseau(e))                     return 'Connexion perdue. Vérifiez votre réseau et réessayez.';
+    if (estServeurIndisponible(e))              return 'Le service est momentanément indisponible. Réessayez dans quelques secondes.';
     if (/Quantité invalide/i.test(brut))        return 'Quantité invalide.';
     if (/plus disponible/i.test(brut))          return "Un plat de votre panier n'est plus disponible. Rafraîchissez le menu.";
     if (/Table inconnue/i.test(brut))           return 'QR code invalide. Demandez au personnel.';
@@ -41,6 +46,15 @@ const Store = (() => {
     if (/Invalid login/i.test(brut))            return 'Identifiants incorrects.';
     if (estSessionExpiree(e))                   return 'Session expirée. Reconnectez-vous.';
     return brut;
+  }
+
+  function estErreurReseau(e) {
+    const m = (e?.message || '') + '';
+    return /Failed to fetch|NetworkError|network request failed|Load failed/i.test(m)
+        || e?.name === 'TypeError' && /fetch/i.test(m);
+  }
+  function estServeurIndisponible(e) {
+    return [500, 502, 503, 504].includes(e?.status);
   }
 
   // Détecte les erreurs d'authentification côté Supabase — JWT expiré,

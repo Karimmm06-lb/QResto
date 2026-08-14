@@ -293,6 +293,23 @@ $('#soundBtn').onclick = e => {
   e.target.textContent = sonActif ? '🔔 Son' : '🔕 Muet';
 };
 
+// Thème sombre/clair : préférence système au premier chargement, choix
+// manuel du caissier conservé en localStorage. Un service qui finit à 23h
+// est plus reposant pour les yeux en sombre.
+function appliquerTheme(t) {
+  document.documentElement.dataset.theme = t;
+  const b = $('#themeBtn');
+  if (b) b.textContent = t === 'dark' ? '☀️' : '🌙';
+}
+const themeSauve = localStorage.getItem('qresto.theme');
+const themeSysteme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+appliquerTheme(themeSauve || themeSysteme);
+$('#themeBtn').onclick = () => {
+  const nv = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('qresto.theme', nv);
+  appliquerTheme(nv);
+};
+
 $('#logoutBtn').onclick = async () => {
   if (desabonner) desabonner();
   await Store.deconnexion();

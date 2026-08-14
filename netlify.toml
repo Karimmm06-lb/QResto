@@ -5,7 +5,11 @@
 
 [build]
   publish = "."
-  command = ""
+  # Cache-busting automatique : à chaque build, tous les ?v=… dans les HTML
+  # sont remplacés par le hash court du commit. Les navigateurs re-téléchargent
+  # donc systématiquement les JS/CSS après un déploiement, sans que je doive
+  # bumper les versions à la main dans 6 fichiers.
+  command = "bash scripts/cache-bust.sh"
 
 # Racine → vitrine du restaurant (une seule instance en production).
 # Le paramètre ?r=team-restaurant reste supporté ; on redirige simplement la

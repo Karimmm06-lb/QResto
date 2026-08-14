@@ -59,6 +59,7 @@ $('#loginBtn').onclick = async () => {
 
 $('#mdp').addEventListener('keydown', e => { if (e.key === 'Enter') $('#loginBtn').click(); });
 $('#printBtn').onclick = () => window.print();
+$('#logoutBtn').onclick = async () => { await Store.deconnexion(); location.reload(); };
 
 function retourAuLogin(motif) {
   restaurantId = null;

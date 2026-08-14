@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#c9a24a">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Page introuvable — Team Restaurant</title>
+  <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(180deg, #f8f3ea, #efe6d1);
+      font-family: 'Jost', 'Helvetica Neue', Arial, sans-serif;
+      color: #3a2416;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 40px 20px;
+    }
+    .carte {
+      max-width: 520px;
+      text-align: center;
+      background: #fff;
+      border: 1px solid #e6dccb;
+      border-radius: 14px;
+      padding: 48px 32px;
+      box-shadow: 0 8px 28px rgba(58, 36, 22, 0.08);
+    }
+    .etoile {
+      color: #c9a24a;
+      font-size: 42px;
+      line-height: 1;
+      margin-bottom: 14px;
+    }
+    .code {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 500;
+      font-size: 72px;
+      line-height: 1;
+      color: #c9a24a;
+      letter-spacing: 4px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 500;
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+    p {
+      color: #6b5334;
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .liens {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    a.principal {
+      display: inline-block;
+      background: #3a2416;
+      color: #f8f3ea;
+      padding: 14px 28px;
+      border-radius: 999px;
+      font-weight: 500;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: background 160ms ease;
+    }
+    a.principal:hover, a.principal:focus-visible {
+      background: #c9a24a;
+      outline: none;
+    }
+    a.secondaire {
+      color: #6b5334;
+      font-size: 13px;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      padding: 4px 0;
+      transition: border-color 160ms ease;
+    }
+    a.secondaire:hover, a.secondaire:focus-visible {
+      border-bottom-color: #c9a24a;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <main class="carte">
+    <div class="etoile" aria-hidden="true">✦</div>
+    <div class="code">404</div>
+    <h1>Page introuvable</h1>
+    <p>Cette page n'existe pas ou a été déplacée.<br>
+       Vous voulez sans doute consulter la carte du restaurant.</p>
+    <div class="liens">
+      <a class="principal" href="/resto.html?r=team-restaurant">Voir la carte</a>
+      <a class="secondaire" href="tel:+213549622404">Ou appeler le restaurant : 05 49 62 24 04</a>
+    </div>
+  </main>
+</body>
+</html>

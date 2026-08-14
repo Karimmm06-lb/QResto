@@ -25,6 +25,12 @@
   status = 302
   force = false
 
+# 404 personnalisé aux couleurs du restaurant.
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404
+
 # En-têtes de sécurité — CSP stricte, HSTS, protections navigateur.
 # Google Fonts et Supabase sont explicitement autorisés ; tout le reste
 # est interdit par défaut, ce qui bloque les injections tierces.

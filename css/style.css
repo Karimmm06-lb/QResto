@@ -723,3 +723,39 @@ input:focus, textarea:focus {
   color: #c9a24a;
   border-bottom-color: #c9a24a;
 }
+
+/* Onglets sur les pages de login staff — permet de basculer entre Caisse,
+   Gérant et QR sans devoir retaper l'URL, et signale clairement l'espace
+   sur lequel on se trouve. L'onglet actif est neutre (curseur par défaut),
+   les autres sont des liens hover/focus. */
+.onglets-login {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 18px;
+  padding: 4px;
+  background: #f0e6d0;
+  border-radius: 999px;
+  max-width: 380px;
+}
+.onglets-login a {
+  flex: 1;
+  padding: 8px 14px;
+  text-align: center;
+  border-radius: 999px;
+  font-family: 'Jost', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b5334;
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease;
+}
+.onglets-login a:hover, .onglets-login a:focus-visible {
+  color: #3a2416;
+  background: #f8f3ea;
+}
+.onglets-login a.actif {
+  background: #3a2416;
+  color: #f8f3ea;
+  cursor: default;
+  pointer-events: none;
+}

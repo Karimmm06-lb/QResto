@@ -1,0 +1,35 @@
+# Configuration Netlify — QResto
+#
+# Site 100 % statique (HTML/CSS/JS natifs, aucune build) : Netlify sert
+# directement la racine du dépôt.
+
+[build]
+  publish = "."
+  command = ""
+
+# Racine → vitrine du restaurant (une seule instance en production).
+# Le paramètre ?r=team-restaurant reste supporté ; on redirige simplement la
+# racine vers la vitrine par défaut pour éviter un 404 sur qresto.dz.
+[[redirects]]
+  from = "/"
+  to = "/resto.html?r=team-restaurant"
+  status = 302
+  force = false
+
+# Les QR imprimés qui pointent encore vers /client.html?t=… continuent de
+# fonctionner grâce à la redirection interne dans client.html, mais on fournit
+# aussi une redirection côté Netlify pour couvrir les cas sans JavaScript.
+[[redirects]]
+  from = "/client.html"
+  to = "/resto.html"
+  status = 302
+  force = false
+
+# En-têtes de sécurité minimaux — pas d'iframe, pas de reniflage MIME,
+# HTTPS forcé par Netlify de toute façon.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

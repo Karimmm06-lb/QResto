@@ -1026,3 +1026,153 @@ input:focus, textarea:focus {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PANEL GÉRANT — onglets, éditeurs de carte, tables, zones, historique.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Ruban d'onglets */
+.onglets-gerant {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 18px 0 22px;
+  padding: 4px;
+  background: #f0e6d0;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+.og-tab {
+  background: transparent;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-family: 'Jost', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b5334;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 160ms ease, color 160ms ease;
+}
+.og-tab:hover, .og-tab:focus-visible {
+  background: #f8f3ea; color: #3a2416; outline: none;
+}
+.og-tab.actif {
+  background: #3a2416; color: #f8f3ea;
+}
+.og-section { animation: og-fadein 200ms ease; }
+@keyframes og-fadein {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.og-entete { margin: 10px 0 20px; }
+.og-entete h2 { margin-top: 0; }
+.og-filtres {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px;
+}
+.og-filtres label { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.og-filtres input[type="date"], .og-filtres input[type="search"] {
+  padding: 6px 10px; border: 1px solid var(--bord); border-radius: 6px;
+}
+.og-filtres input[type="search"] { min-width: 220px; }
+
+/* Éditeur de carte */
+.ec-toolbar {
+  display: flex; gap: 8px; margin-bottom: 18px;
+}
+.ec-toolbar input { flex: 1; padding: 10px 12px; border: 1px solid var(--bord); border-radius: 8px; }
+
+.ec-cat {
+  background: #fff; border: 1px solid var(--bord); border-radius: 12px;
+  padding: 16px; margin-bottom: 16px;
+}
+.ec-cat-tete {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  padding-bottom: 12px; border-bottom: 1px solid var(--bord); margin-bottom: 14px;
+}
+.ec-cat-nom { flex: 1 1 200px; font-weight: 600; padding: 8px 10px;
+  border: 1px solid var(--bord); border-radius: 6px; font-size: 15px; }
+.ec-cat-tr { width: 90px; padding: 8px 10px; border: 1px solid var(--bord);
+  border-radius: 6px; font-size: 12px; }
+
+.ec-plat {
+  background: #fbf7ec; border: 1px solid var(--bord); border-radius: 10px;
+  padding: 12px; margin-bottom: 10px;
+}
+.ec-plat-tete { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.ec-plat-nom { flex: 1 1 220px; padding: 7px 10px; border: 1px solid var(--bord);
+  border-radius: 6px; font-weight: 500; }
+.ec-plat-desc {
+  width: 100%; padding: 7px 10px; border: 1px solid var(--bord); border-radius: 6px;
+  font-family: inherit; font-size: 13px; min-height: 40px; resize: vertical; margin-bottom: 8px;
+}
+.ec-livrable { display: flex; align-items: center; gap: 5px; font-size: 13px; color: #6b5334; }
+
+.ec-variantes { display: flex; flex-direction: column; gap: 6px; }
+.ec-var {
+  display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+  padding: 6px; background: #fff; border-radius: 6px;
+}
+.ec-var-lbl { flex: 1 1 120px; padding: 6px 8px; border: 1px solid var(--bord); border-radius: 5px; }
+.ec-var-prix { width: 90px; padding: 6px 8px; border: 1px solid var(--bord);
+  border-radius: 5px; text-align: right; font-variant-numeric: tabular-nums; }
+.ec-devise { color: #6b5334; font-size: 12px; }
+.ec-ajouter-plat, .ec-ajouter-var { margin-top: 6px; }
+.ec-archives { margin-top: 20px; }
+.ec-archives summary { cursor: pointer; font-weight: 500; padding: 8px 0; }
+.ec-liste-archives { padding: 10px 0; }
+
+/* Éditeur de tables */
+.et-table {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  background: #fff; border: 1px solid var(--bord); border-radius: 10px;
+  padding: 12px 16px; margin-bottom: 8px;
+}
+.et-num { font-weight: 700; font-size: 16px; min-width: 90px; }
+.et-etat { color: #6b5334; font-size: 13px; min-width: 100px; }
+.et-lien { color: #c9a24a; text-decoration: none; font-size: 13px; }
+.et-lien:hover { text-decoration: underline; }
+
+/* Éditeur de zones */
+.ez-zone {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  background: #fff; border: 1px solid var(--bord); border-radius: 10px;
+  padding: 12px 16px; margin-bottom: 8px;
+}
+.ez-zone label { display: flex; align-items: center; gap: 5px; font-size: 13px; color: #6b5334; }
+.ez-nom { flex: 1 1 180px; padding: 7px 10px; border: 1px solid var(--bord);
+  border-radius: 6px; font-weight: 500; }
+.ez-frais, .ez-min { width: 90px; padding: 6px 8px; border: 1px solid var(--bord);
+  border-radius: 5px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Éditeur restaurant */
+.er-form {
+  display: grid; grid-template-columns: 1fr; gap: 12px;
+  background: #fff; border: 1px solid var(--bord); border-radius: 12px; padding: 20px;
+}
+@media (min-width: 720px) {
+  .er-form { grid-template-columns: 1fr 1fr; }
+  .er-form button { grid-column: 1 / -1; }
+}
+.er-form label { display: flex; flex-direction: column; gap: 4px;
+  font-size: 12px; color: #6b5334; font-weight: 500; }
+.er-form input[type="text"], .er-form input:not([type]), .er-form input[type="number"] {
+  padding: 9px 12px; border: 1px solid var(--bord); border-radius: 6px; font-size: 14px;
+}
+.er-check { flex-direction: row; align-items: center; gap: 8px; }
+
+/* Tableaux historique / audit */
+.eh-table {
+  width: 100%; border-collapse: collapse; background: #fff;
+  border: 1px solid var(--bord); border-radius: 10px; overflow: hidden;
+}
+.eh-table th, .eh-table td {
+  padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--bord);
+  font-size: 13px;
+}
+.eh-table th { background: #f0e6d0; font-weight: 600; color: #3a2416; }
+.eh-table td.r { text-align: right; font-variant-numeric: tabular-nums; }
+.eh-table tr.annulee td { opacity: 0.55; text-decoration: line-through; }
+.eh-table code { background: #f0e6d0; padding: 2px 6px; border-radius: 4px;
+  font-family: 'SF Mono', 'Monaco', monospace; white-space: pre-wrap; word-break: break-all; }

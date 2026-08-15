@@ -9,7 +9,7 @@
   <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
   <link rel="apple-touch-icon" href="img/favicon.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=19">
+  <link rel="stylesheet" href="css/style.css?v=20">
 </head>
 <body>
   <header class="topbar" id="barre" style="display:none">
@@ -22,6 +22,7 @@
   </header>
 
   <div id="erreur" class="alerte"></div>
+  <div id="succes" class="alerte" style="background:#d4edda;color:#155724;border-color:#c3e6cb"></div>
 
   <main class="wrap narrow login" id="loginView">
     <a class="lien-retour" href="/resto.html?r=team-restaurant">← Retour au restaurant</a>
@@ -40,24 +41,97 @@
   </main>
 
   <main class="wrap" id="appView" style="display:none">
-    <div class="stats" style="margin-top:18px">
-      <div class="card stat"><div class="v" id="ca">0 DA</div><div class="k">Encaissé</div></div>
-      <div class="card stat"><div class="v" id="nb">0</div><div class="k">Tables servies</div></div>
-      <div class="card stat"><div class="v" id="moy">0 DA</div><div class="k">Addition moyenne</div></div>
-      <div class="card stat"><div class="v" id="perte">0 DA</div><div class="k">Pertes (annulations)</div></div>
-    </div>
+    <!-- Ruban d'onglets — le gérant navigue entre les grands domaines sans
+         perdre le contexte de connexion. -->
+    <nav class="onglets-gerant" role="tablist" aria-label="Sections gérant">
+      <button class="og-tab actif" data-tab="stats" role="tab">📊 Statistiques</button>
+      <button class="og-tab" data-tab="carte" role="tab">🍽️ Carte</button>
+      <button class="og-tab" data-tab="tables" role="tab">🪑 Tables</button>
+      <button class="og-tab" data-tab="livraison" role="tab">🛵 Livraison</button>
+      <button class="og-tab" data-tab="resto" role="tab">🏪 Restaurant</button>
+      <button class="og-tab" data-tab="historique" role="tab">📜 Historique</button>
+      <button class="og-tab" data-tab="audit" role="tab">🔒 Journal</button>
+    </nav>
 
-    <h2>Plats les plus vendus</h2>
-    <div class="card" id="top"></div>
+    <section id="tab-stats" class="og-section active" role="tabpanel">
+      <div class="stats" style="margin-top:18px">
+        <div class="card stat"><div class="v" id="ca">0 DA</div><div class="k">Encaissé</div></div>
+        <div class="card stat"><div class="v" id="nb">0</div><div class="k">Tables servies</div></div>
+        <div class="card stat"><div class="v" id="moy">0 DA</div><div class="k">Addition moyenne</div></div>
+        <div class="card stat"><div class="v" id="perte">0 DA</div><div class="k">Pertes (annulations)</div></div>
+      </div>
+      <h2>Plats les plus vendus</h2>
+      <div class="card" id="top"></div>
+      <h2>Tables servies par heure</h2>
+      <div class="card" id="hours"></div>
+      <h2>Disponibilité des plats</h2>
+      <p class="sub" style="margin-top:-6px">Un plat basculé ici disparaît immédiatement des téléphones.</p>
+      <div class="card" id="dispo"></div>
+    </section>
 
-    <h2>Tables servies par heure</h2>
-    <div class="card" id="hours"></div>
+    <section id="tab-carte" class="og-section" role="tabpanel" hidden>
+      <div class="og-entete">
+        <h2>Édition de la carte</h2>
+        <p class="sub">Ajoutez, renommez, retarifiez, retirez. Les changements sont immédiats pour vos clients.</p>
+      </div>
+      <div id="editeurCarte"></div>
+    </section>
 
-    <h2>Disponibilité des plats</h2>
-    <p class="sub" style="margin-top:-6px">Un plat basculé ici disparaît immédiatement des téléphones.</p>
-    <div class="card" id="dispo"></div>
+    <section id="tab-tables" class="og-section" role="tabpanel" hidden>
+      <div class="og-entete">
+        <h2>Tables et QR codes</h2>
+        <p class="sub">Chaque table possède son QR. Désactiver une table la retire des scans possibles.
+          Régénérer un QR invalide immédiatement l'ancien (utile en cas de fuite).</p>
+        <button class="btn" id="btnAjouterTable">＋ Ajouter une table</button>
+      </div>
+      <div id="editeurTables"></div>
+    </section>
 
-    <h2>QR codes des tables</h2>
+    <section id="tab-livraison" class="og-section" role="tabpanel" hidden>
+      <div class="og-entete">
+        <h2>Zones de livraison</h2>
+        <p class="sub">Frais et minimum de commande par zone. Désactiver une zone la retire du choix
+          proposé aux clients, sans effacer les commandes passées.</p>
+        <button class="btn" id="btnAjouterZone">＋ Ajouter une zone</button>
+      </div>
+      <div id="editeurZones"></div>
+    </section>
+
+    <section id="tab-resto" class="og-section" role="tabpanel" hidden>
+      <div class="og-entete">
+        <h2>Informations du restaurant</h2>
+        <p class="sub">Nom, adresse, contact et présence en ligne — affichés en tête de la vitrine
+          et en pied de page.</p>
+      </div>
+      <div id="editeurResto"></div>
+    </section>
+
+    <section id="tab-historique" class="og-section" role="tabpanel" hidden>
+      <div class="og-entete">
+        <h2>Historique des commandes</h2>
+        <p class="sub">Recherche sur les 7 derniers jours par défaut. Un export CSV vous permet
+          de tenir votre comptabilité.</p>
+        <div class="og-filtres">
+          <label>Du <input type="date" id="histDu"></label>
+          <label>Au <input type="date" id="histAu"></label>
+          <input type="search" id="histRecherche" placeholder="Rechercher (N°, nom, téléphone…)">
+          <button class="btn sm" id="histCharger">Actualiser</button>
+          <button class="btn sm ghost" id="histExport">Exporter CSV</button>
+        </div>
+      </div>
+      <div id="editeurHistorique"></div>
+    </section>
+
+    <section id="tab-audit" class="og-section" role="tabpanel" hidden>
+      <div class="og-entete">
+        <h2>Journal d'audit</h2>
+        <p class="sub">Trace inaltérable des actions sensibles : annulations, changements de prix,
+          suppression de plats. 200 dernières entrées.</p>
+      </div>
+      <div id="editeurAudit"></div>
+    </section>
+
+    <h2 style="margin-top:40px">QR codes des tables</h2>
     <p class="sub" style="margin-top:-6px">
       Pour la version à découper et poser sur les tables, ouvrez
       <a href="qr.html">la planche à imprimer</a>.
@@ -65,9 +139,9 @@
     <div class="grid cols" id="qrs"></div>
   </main>
 
-  <script src="js/config.js?v=2"></script>
+  <script src="js/config.js?v=11"></script>
   <script src="js/data.js?v=2"></script>
-  <script src="js/store.js?v=2"></script>
-  <script src="js/admin.js?v=2"></script>
+  <script src="js/store.js?v=11"></script>
+  <script src="js/admin.js?v=3"></script>
 </body>
 </html>

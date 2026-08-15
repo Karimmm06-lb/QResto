@@ -340,6 +340,159 @@ const Store = (() => {
       if (error) throw error;
       return data;
     },
+
+    // ---------------------------------------------------- édition gérant
+    // Chaque opération passe par un RPC qui vérifie mon_restaurant() côté
+    // base : impossible d'éditer un plat d'un autre restaurant, même avec
+    // un session token valide (D4).
+
+    async editerPlat(id, champs) {
+      await init();
+      const { error } = await sb.rpc('editer_plat', {
+        p_plat_id: id,
+        p_nom_fr: champs.nom_fr ?? null, p_nom_ar: champs.nom_ar ?? null, p_nom_en: champs.nom_en ?? null,
+        p_desc_fr: champs.desc_fr ?? null, p_desc_ar: champs.desc_ar ?? null, p_desc_en: champs.desc_en ?? null,
+        p_livrable: champs.livrable ?? null, p_ordre: champs.ordre ?? null,
+      });
+      if (error) throw error;
+    },
+    async creerPlat({ categorieId, nom, prix, description, livrable = true }) {
+      await init();
+      const { data, error } = await sb.rpc('creer_plat', {
+        p_categorie_id: categorieId, p_nom_fr: nom, p_prix: prix,
+        p_desc_fr: description || null, p_livrable: livrable,
+      });
+      if (error) throw error;
+      return data;
+    },
+    async archiverPlat(id) {
+      await init();
+      const { error } = await sb.rpc('archiver_plat', { p_plat_id: id });
+      if (error) throw error;
+    },
+    async restaurerPlat(id) {
+      await init();
+      const { error } = await sb.rpc('restaurer_plat', { p_plat_id: id });
+      if (error) throw error;
+    },
+    async editerVariante(id, champs) {
+      await init();
+      const { error } = await sb.rpc('editer_variante', {
+        p_variante_id: id,
+        p_libelle_fr: champs.libelle_fr ?? null,
+        p_libelle_ar: champs.libelle_ar ?? null,
+        p_libelle_en: champs.libelle_en ?? null,
+        p_prix: champs.prix ?? null, p_ordre: champs.ordre ?? null,
+      });
+      if (error) throw error;
+    },
+    async creerVariante({ platId, libelle, prix }) {
+      await init();
+      const { data, error } = await sb.rpc('creer_variante', {
+        p_plat_id: platId, p_libelle_fr: libelle || 'Standard', p_prix: prix,
+      });
+      if (error) throw error;
+      return data;
+    },
+    async supprimerVariante(id) {
+      await init();
+      const { error } = await sb.rpc('supprimer_variante', { p_variante_id: id });
+      if (error) throw error;
+    },
+    async creerCategorie({ nom, nomAr, nomEn }) {
+      await init();
+      const { data, error } = await sb.rpc('creer_categorie',
+        { p_nom_fr: nom, p_nom_ar: nomAr || null, p_nom_en: nomEn || null });
+      if (error) throw error;
+      return data;
+    },
+    async editerCategorie(id, champs) {
+      await init();
+      const { error } = await sb.rpc('editer_categorie', {
+        p_id: id, p_nom_fr: champs.nom_fr ?? null,
+        p_nom_ar: champs.nom_ar ?? null, p_nom_en: champs.nom_en ?? null,
+        p_ordre: champs.ordre ?? null,
+      });
+      if (error) throw error;
+    },
+    async supprimerCategorie(id) {
+      await init();
+      const { error } = await sb.rpc('supprimer_categorie', { p_id: id });
+      if (error) throw error;
+    },
+
+    async creerTable() {
+      await init();
+      const { data, error } = await sb.rpc('creer_table');
+      if (error) throw error;
+      return data;
+    },
+    async basculerTable(id, active) {
+      await init();
+      const { error } = await sb.rpc('basculer_table', { p_id: id, p_active: active });
+      if (error) throw error;
+    },
+    async regenererQrTable(id) {
+      await init();
+      const { data, error } = await sb.rpc('regenerer_qr_table', { p_id: id });
+      if (error) throw error;
+      return data;
+    },
+
+    async zonesGerant(restaurantId) {
+      await init();
+      const { data, error } = await sb.from('zones_livraison')
+        .select('*').eq('restaurant_id', restaurantId).order('ordre');
+      if (error) throw error;
+      return data;
+    },
+    async creerZone({ nom, frais, minimum }) {
+      await init();
+      const { data, error } = await sb.rpc('creer_zone',
+        { p_nom: nom, p_frais: frais, p_minimum: minimum || 0 });
+      if (error) throw error;
+      return data;
+    },
+    async editerZone(id, champs) {
+      await init();
+      const { error } = await sb.rpc('editer_zone', {
+        p_id: id, p_nom: champs.nom ?? null, p_frais: champs.frais ?? null,
+        p_minimum: champs.minimum ?? null, p_active: champs.active ?? null,
+      });
+      if (error) throw error;
+    },
+    async supprimerZone(id) {
+      await init();
+      const { error } = await sb.rpc('supprimer_zone', { p_id: id });
+      if (error) throw error;
+    },
+
+    async editerRestaurant(champs) {
+      await init();
+      const { error } = await sb.rpc('editer_restaurant', {
+        p_nom: champs.nom ?? null, p_slogan: champs.slogan ?? null,
+        p_adresse: champs.adresse ?? null, p_telephone: champs.telephone ?? null,
+        p_horaires: champs.horaires ?? null,
+        p_facebook: champs.facebook ?? null, p_instagram: champs.instagram ?? null,
+        p_delai_min_minutes: champs.delai_min_minutes ?? null,
+        p_vitrine_active: champs.vitrine_active ?? null,
+      });
+      if (error) throw error;
+    },
+
+    async historiqueCommandes(du, au) {
+      await init();
+      const { data, error } = await sb.rpc('historique_commandes',
+        { p_du: du, p_au: au });
+      if (error) throw error;
+      return data;
+    },
+    async journalAudit(limite = 200) {
+      await init();
+      const { data, error } = await sb.rpc('journal_audit_gerant', { p_limite: limite });
+      if (error) throw error;
+      return data;
+    },
   };
 })();
 

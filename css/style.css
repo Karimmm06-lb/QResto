@@ -1176,3 +1176,75 @@ input:focus, textarea:focus {
 .eh-table tr.annulee td { opacity: 0.55; text-decoration: line-through; }
 .eh-table code { background: #f0e6d0; padding: 2px 6px; border-radius: 4px;
   font-family: 'SF Mono', 'Monaco', monospace; white-space: pre-wrap; word-break: break-all; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Dark mode admin — mêmes tokens que la caisse, mais scoped body.admin.
+   Applique aux surfaces (page, cards, formulaires), aux tableaux et aux
+   composants du panel gérant.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root[data-theme="dark"] body.admin {
+  background: #0d1117; color: #e6edf3;
+}
+:root[data-theme="dark"] body.admin .card,
+:root[data-theme="dark"] body.admin .stat,
+:root[data-theme="dark"] body.admin .ec-cat,
+:root[data-theme="dark"] body.admin .et-table,
+:root[data-theme="dark"] body.admin .ez-zone,
+:root[data-theme="dark"] body.admin .er-form,
+:root[data-theme="dark"] body.admin .eh-table {
+  background: #161b22; border-color: #30363d; color: #e6edf3;
+}
+:root[data-theme="dark"] body.admin .ec-plat {
+  background: #0d1117; border-color: #30363d;
+}
+:root[data-theme="dark"] body.admin .ec-var { background: #161b22; }
+:root[data-theme="dark"] body.admin .topbar {
+  background: #161b22; border-bottom: 1px solid #30363d;
+}
+:root[data-theme="dark"] body.admin .brand { color: #e6edf3; }
+:root[data-theme="dark"] body.admin .brand span { color: #c9a24a; }
+:root[data-theme="dark"] body.admin .btn.ghost {
+  border-color: #30363d; color: #e6edf3; background: transparent;
+}
+:root[data-theme="dark"] body.admin .btn.ghost:hover { background: #21262d; }
+:root[data-theme="dark"] body.admin input,
+:root[data-theme="dark"] body.admin select,
+:root[data-theme="dark"] body.admin textarea {
+  background: #0d1117; color: #e6edf3; border-color: #30363d;
+}
+:root[data-theme="dark"] body.admin h1,
+:root[data-theme="dark"] body.admin h2 { color: #e6edf3; }
+:root[data-theme="dark"] body.admin .sub,
+:root[data-theme="dark"] body.admin .k,
+:root[data-theme="dark"] body.admin .lbl { color: #8b949e; }
+:root[data-theme="dark"] body.admin .stat .v { color: #c9a24a; }
+:root[data-theme="dark"] body.admin .empty { color: #8b949e; }
+
+/* Onglets gérant */
+:root[data-theme="dark"] body.admin .onglets-gerant { background: #161b22; }
+:root[data-theme="dark"] body.admin .og-tab { color: #8b949e; }
+:root[data-theme="dark"] body.admin .og-tab:hover { background: #21262d; color: #e6edf3; }
+:root[data-theme="dark"] body.admin .og-tab.actif { background: #c9a24a; color: #0d1117; }
+
+/* Éditeur de carte */
+:root[data-theme="dark"] body.admin .ec-cat-tete,
+:root[data-theme="dark"] body.admin .ec-plat-tete { border-color: #30363d; }
+:root[data-theme="dark"] body.admin .ec-livrable { color: #8b949e; }
+:root[data-theme="dark"] body.admin .ec-devise { color: #8b949e; }
+
+/* Historique / audit */
+:root[data-theme="dark"] body.admin .eh-table th {
+  background: #21262d; color: #e6edf3; border-color: #30363d;
+}
+:root[data-theme="dark"] body.admin .eh-table td { border-color: #30363d; }
+:root[data-theme="dark"] body.admin .eh-table code { background: #21262d; color: #c9a24a; }
+:root[data-theme="dark"] body.admin .chip { background: #21262d; color: #e6edf3; }
+
+/* Barres de stats */
+:root[data-theme="dark"] body.admin .bar .track { background: #21262d; }
+:root[data-theme="dark"] body.admin .bar .fill { background: #c9a24a; }
+
+/* Alerte succès rendue plus lisible en dark */
+:root[data-theme="dark"] body.admin #succes {
+  background: #0f2419 !important; color: #56d364 !important; border-color: #238636 !important;
+}

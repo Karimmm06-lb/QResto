@@ -672,6 +672,23 @@ $('#mdp').addEventListener('keydown', e => { if (e.key === 'Enter') $('#loginBtn
 
 $('#logoutBtn').onclick = async () => { await Store.deconnexion(); location.reload(); };
 
+// Thème sombre/clair — même mécanique que la caisse : préférence système
+// détectée, choix manuel du gérant conservé en localStorage. Utile quand
+// le patron consulte son admin depuis chez lui tard le soir.
+function appliquerTheme(t) {
+  document.documentElement.dataset.theme = t;
+  const b = $('#themeBtn');
+  if (b) b.textContent = t === 'dark' ? '☀️' : '🌙';
+}
+const themeSauve = localStorage.getItem('qresto.theme');
+const themeSysteme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+appliquerTheme(themeSauve || themeSysteme);
+$('#themeBtn').onclick = () => {
+  const nv = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('qresto.theme', nv);
+  appliquerTheme(nv);
+};
+
 function retourAuLogin(motif) {
   restaurantId = null;
   $('#barre').style.display = 'none';

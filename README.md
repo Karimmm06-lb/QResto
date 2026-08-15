@@ -6,6 +6,8 @@ commande en direct et imprime le ticket pour le cuisinier.
 
 Aucune application à installer, aucun compte à créer, aucun paiement en ligne.
 
+> **En production :** https://qresto-team.netlify.app — pilote Team Restaurant, Aïn Benian, Alger.
+
 ---
 
 ## Le problème
@@ -21,15 +23,23 @@ conçues pour des chaînes et supposent un budget qu'ils n'ont pas.
 
 ## Le fonctionnement
 
+Trois modes de commande, la même page publique :
+
+| Mode | Comment le client y arrive | Où va la commande |
+|---|---|---|
+| **Sur place** | Scanne le QR posé sur sa table | Directement en cuisine (statut `nouvelle`) |
+| **À emporter** | Ouvre la vitrine (lien / réseaux sociaux) | Caisse en `à confirmer` — le caissier appelle, puis lance en cuisine |
+| **Livraison** | Ouvre la vitrine, choisit sa zone | Idem, avec adresse et frais de zone |
+
+Une fois la commande envoyée :
+
 | | Acteur | Action |
 |---|---|---|
-| 1 | Client | Scanne le QR de sa table, la carte s'ouvre sur son téléphone |
-| 2 | Client | Compose sa commande, indique son prénom, valide |
-| 3 | Caissier | La commande apparaît en direct sur son écran, avec un bip |
-| 4 | Caissier | Imprime le ticket et le remet au cuisinier |
-| 5 | Cuisinier | Prépare — il ne change rien à ses habitudes |
-| 6 | Serveur | Livre le plat, le prénom indique le destinataire |
-| 7 | Client | Paie la totalité de sa table en caisse |
+| 1 | Caissier | La commande apparaît en direct sur son écran, avec un bip |
+| 2 | Caissier | Imprime le ticket et le remet au cuisinier |
+| 3 | Cuisinier | Prépare — il ne change rien à ses habitudes |
+| 4 | Serveur | Livre le plat, le prénom indique le destinataire |
+| 5 | Client | Paie la totalité de sa table en caisse |
 
 Le cuisinier et le serveur n'utilisent pas le logiciel. C'est délibéré : moins il y a de
 personnes à former, plus l'adoption est rapide.
@@ -40,7 +50,7 @@ personnes à former, plus l'adoption est rapide.
 - **Le compte client** — aucune inscription, c'est un argument commercial
 - **L'écran en cuisine** — le ticket papier suffit
 - **La notification au serveur** — l'objectif est de le décharger, pas de lui ajouter du bruit
-- **Le site vitrine** — produit distinct : *le site peut pointer vers la carte, la carte ne dépend jamais du site*
+- **Le bouton « Sur place » sans QR** — un lien direct ne peut pas déclencher une préparation en cuisine (garantie physique de présence, [décision D25](docs/decisions.md#d25))
 
 ---
 
@@ -50,10 +60,10 @@ personnes à former, plus l'adoption est rapide.
 
 ```
 Téléphone (anonyme)  ─┐
-Poste caisse (auth.)  ├─►  Pages statiques  ─►  PostgreSQL managé
-Poste gérant (auth.)  ─┘                        · API + règles de sécurité
-                                                · procédures stockées
-                                                · diffusion temps réel
+Poste caisse (auth.)  ├─►  Pages statiques (Netlify)  ─►  PostgreSQL managé (Supabase)
+Poste gérant (auth.)  ─┘                                  · API + politiques RLS
+                                                          · procédures stockées
+                                                          · diffusion temps réel
 ```
 
 Le front est du HTML, CSS et JavaScript natifs — aucune dépendance, aucune compilation.
@@ -81,12 +91,29 @@ compter les ventes du restaurant.
 
 ## Écrans
 
-| Fichier | Écran | Accès |
-|---|---|---|
-| `client.html` | Carte, panier, suivi de commande | Par QR, anonyme |
-| `caisse.html` | Réception temps réel, ticket, encaissement | Authentifié |
-| `admin.html` | Carte, disponibilité, ventes, QR codes | Authentifié |
-| `qr.html` | Planche de QR codes à imprimer et découper | Authentifié |
+Une seule page côté client, trois côtés staff.
+
+| Fichier | URL propre | Rôle | Accès |
+|---|---|---|---|
+| `resto.html` | `/resto` ou `/` | Vitrine + carte + panier (sur place / emporter / livraison) | Par QR ou lien, anonyme |
+| `caisse.html` | `/caisse` | Réception temps réel, ticket, encaissement, dark mode | Authentifié |
+| `admin.html` | `/admin` | Carte, disponibilité, ventes, QR codes | Authentifié |
+| `qr.html` | `/qr` | Planche de QR à imprimer et découper | Authentifié |
+| `mentions-legales.html` | `/mentions-legales` | Éditeur, hébergement, RGPD / loi 18-07 | Public |
+| `client.html` | — | Redirecteur vers `resto.html` (préserve les QR déjà imprimés) | Public |
+
+Toutes les pages staff proposent une navigation croisée dès le formulaire de connexion,
+et retombent proprement sur celui-ci quand la session Supabase expire ([D32](docs/decisions.md#d32)).
+
+## Fonctionnalités qualité produit
+
+- **Trilingue FR / AR / EN** avec RTL arabe complet, préférence conservée localement
+- **PWA installable** — « Ajouter à l'écran d'accueil » sur mobile
+- **Partage social riche** — Open Graph, Twitter Card, données structurées Schema.org Restaurant
+- **404 personnalisée** aux couleurs du restaurant
+- **Cache-busting automatique** via le hash de commit à chaque build Netlify
+- **CSP stricte**, HSTS un an, Permissions-Policy verrouillée
+- **Aucun tracker**, aucun cookie tiers
 
 ---
 
@@ -94,49 +121,69 @@ compter les ventes du restaurant.
 
 | Document | Contenu |
 |---|---|
-| [Cahier des charges](docs/cahier-des-charges.md) | Périmètre, acteurs, 24 exigences fonctionnelles, exclusions |
+| [Cahier des charges](docs/cahier-des-charges.md) | Périmètre, acteurs, exigences fonctionnelles, exclusions |
 | [Diagrammes](docs/diagrammes.md) | Contexte, cas d'utilisation, séquence, états, déploiement |
-| [Registre des décisions](docs/decisions.md) | 30 décisions avec justifications et alternatives écartées |
+| [Registre des décisions](docs/decisions.md) | 34 décisions avec justifications et alternatives écartées |
 | [Modèle de données](docs/06-modele-donnees.md) | MCD, MLD, dictionnaire des 11 tables |
 | [Planification](docs/01-planning.md) · [Analyse](docs/02-analyse.md) · [Conception](docs/03-conception.md) | Phases 1 à 3 |
-| [Tests](docs/05-tests.md) | Tests passés et fiche d'observation terrain |
-| [Dossier complet](docs/QResto-Dossier-de-projet.docx) | Version Word |
+| [Tests et audit](docs/05-tests.md) | Tests d'intégration passés, audit sécurité 2026-08-13 |
+| [Dossier complet](docs/QResto-Dossier-de-projet.docx) | Version Word (regénérée depuis les `.md` via `docs/generer-dossier.py`) |
 
 Le registre des décisions est le document le plus utile pour comprendre le projet :
-chaque choix y figure avec **ce qui a été écarté et pourquoi**. Deux décisions ont été
-rouvertes après confrontation au réel — les cartes des restaurants ciblés ont invalidé
-une hypothèse sur les suppléments.
+chaque choix y figure avec **ce qui a été écarté et pourquoi**. Le pivot du 2026-08-14
+(mono-tenant + fusion vitrine + parcours QR, décisions D23 à D34) documente également le
+raisonnement produit derrière les changements récents.
 
 ---
 
 ## Installation
 
-Le front est statique : n'importe quel hébergeur suffit.
+### Base de données
 
-La base se reconstruit à partir des migrations :
+Le front est statique : n'importe quel hébergeur suffit. La base se reconstruit à partir
+des migrations dans `supabase/migrations/` :
 
 ```
-supabase/migrations/
-├── 0001_init.sql              tables, sécurité, procédures
-├── 0002_import_restaurant.sql intégration d'un restaurant en un appel
-├── 0004_index.sql             index relevés par l'audit de performance
-└── 0005_idempotence.sql       protection contre le double envoi
+0001 → 0009  schéma initial, procédures, index, idempotence, commande à distance, rétention
+0010         RPC vitrine_par_jeton (fusion vitrine + parcours QR)
+0011         correctifs audit (non-livrables en livraison + RLS zones_livraison)
 ```
 
-Renseignez ensuite l'adresse du projet et la clé publiable dans `js/config.js`. Cette clé
-est **publique par conception** : toute la sécurité repose sur les politiques de la base.
+Renseignez ensuite l'adresse du projet Supabase et la clé publiable dans `js/config.js`.
+Cette clé est **publique par conception** : toute la sécurité repose sur les politiques
+de la base.
+
+### Front
+
+Aucune build step. Netlify sert la racine du dépôt en statique. Le seul script de build
+est `scripts/cache-bust.sh` qui réécrit les `?v=…` des HTML avec le hash du commit
+courant, pour un cache-busting automatique.
+
+Configuration Netlify (`netlify.toml`) :
+- Rewrites `/caisse`, `/admin`, `/qr`, `/resto`, `/mentions-legales` → `.html` correspondant
+- Redirection `/client.html` → `/resto.html` (couvre les QR déjà imprimés)
+- En-têtes de sécurité : CSP stricte, HSTS, Permissions-Policy, X-Frame-Options
+
+### Comptes staff
+
+Un compte auth par restaurant (`app_metadata.restaurant_id` définit le cloisonnement).
+Pour le pilote actuel :
+
+- `team@qresto.dz` — Team Restaurant (accès caisse + admin + qr)
 
 ---
 
 ## État
 
-Application complète et vérifiée de bout en bout. Base en production, auditée — l'audit a
-révélé deux failles réelles, corrigées et documentées.
+Application complète et vérifiée de bout en bout, en production sur
+`qresto-team.netlify.app`. Base auditée, deux failles réelles corrigées et documentées
+dans [`docs/05-tests.md`](docs/05-tests.md#audit-de-sécurité--2026-08-13).
 
-**Ce qui reste dépend du terrain** : le comportement en cas de coupure internet, la panne
-d'imprimante et la maintenance de la carte ne peuvent pas être tranchés depuis un bureau.
-La [fiche d'observation](docs/05-tests.md) est faite pour ça.
+**Ce qui reste dépend du terrain** : le comportement en cas de coupure internet
+(D12), la panne d'imprimante (D13) et la maintenance de la carte par le gérant
+(D14) ne peuvent pas être tranchés depuis un bureau. La
+[fiche d'observation](docs/05-tests.md) est faite pour ça.
 
 ---
 
-*Projet réalisé par Abdelkarim Laabani.*
+*Projet réalisé par Abdelkarim Laabani avec son binôme. Pilote : Team Restaurant, Aïn Benian, Alger.*

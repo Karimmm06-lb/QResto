@@ -144,6 +144,7 @@ journal_audit      (#id, restaurant_id°, commande_id, session_id, action,
 | archive | boolean | non | `false` | **Un plat retiré de la carte n'est jamais supprimé** : les commandes passées le référencent |
 | ordre | int | non | `0` | Ordre dans la catégorie |
 | est_supplement | boolean | non | `false` | Un supplément est un plat marqué. Il hérite ainsi des déclinaisons, de la disponibilité et du prix figé sans table dédiée (D5-bis) |
+| livrable | boolean | non | `true` | Faux pour les plats qui ne supportent pas le transport : viandes à cuisson précise, glaces, boissons chaudes. Filtre appliqué aux modes `a_emporter` et `livraison`, jamais au sur place. Vérifié par `valider_lignes_distance` avant tout traitement (D27). |
 
 ### variantes_plat
 

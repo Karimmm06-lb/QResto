@@ -1,11 +1,16 @@
 # Cahier des charges — QResto
 
-**Version 2** — recentrée sur un établissement pilote et sur la séparation entre le
-système de commande et le site vitrine.
+**Version 3** — mono-tenant en production (Team Restaurant, Aïn Benian) avec la
+vitrine et le parcours QR fusionnés sur une seule page publique (`resto.html`).
+Le code, le schéma et les procédures restent multi-tenant : ajouter un
+restaurant reste un simple appel à `importer_restaurant` + création d'un compte
+avec `app_metadata.restaurant_id`. Voir décisions D23 (mono-tenant), D24 (fusion
+vitrine + parcours QR) et D25 (le mode sur place n'apparaît qu'après scan) dans
+[`decisions.md`](decisions.md).
 
-Cette version remplace le périmètre défini en phase 1. Les décisions techniques déjà
-prises et vérifiées (modèle de données, sécurité, temps réel) restent valides ; ce
-document redéfinit **ce qu'on livre, à qui, et dans quel ordre**.
+Les décisions techniques déjà prises et vérifiées (modèle de données, sécurité,
+temps réel, rétention) restent valides. Ce document redéfinit **ce qu'on livre,
+à qui, et dans quel ordre**.
 
 ---
 

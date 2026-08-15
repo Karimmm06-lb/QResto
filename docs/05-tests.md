@@ -26,6 +26,15 @@ suivi reflété sur le téléphone → prête → servie → encaissement de la 
 
 Vérifié en local **et** sur la démo publique, contre la base de production.
 
+### Audit de sécurité — 2026-08-13
+
+Passe complète RPC + RLS, deux failles réelles trouvées et corrigées le jour même.
+
+| # | Faille | Preuve | Correctif |
+|---|---|---|---|
+| A1 | `creer_commande_distance` acceptait les plats non livrables (viandes à cuisson précise, glaces) en livraison — la fonction `valider_lignes_distance` existait mais n'était plus appelée. | Commande de 3 entrecôtes en livraison passée avec succès. | Ajout de `perform valider_lignes_distance(...)` dans le RPC (migration `0011_correctifs_audit.sql`). Rejoué : la même commande est désormais refusée. |
+| A2 | `zones_livraison` : RLS désactivée. N'importe qui avec la clé publique pouvait lire et modifier les zones et frais de livraison de tous les restaurants. | Advisory Supabase `rls_disabled`. | RLS activée, policy `select public` conservée (la vitrine anonyme en a besoin), écriture réservée au gérant du restaurant (`restaurant_id = mon_restaurant()`). |
+
 ## 5.2 Ce qui ne peut pas être testé depuis un bureau
 
 Trois décisions restent ouvertes parce qu'elles dépendent de conditions réelles.

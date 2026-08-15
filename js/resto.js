@@ -213,14 +213,16 @@ function plats() {
   return resto.carte.flatMap(c => c.plats.map(p => ({ ...p, categorie: c.nom })));
 }
 
-// En sur place, tous les plats sont commandables. En livraison, la base
-// refuse les non-livrables ; on les masque pour éviter l'erreur inutile.
+// Les plats épuisés restent visibles avec un badge « Épuisé » et un bouton +
+// désactivé — un client qui repère un plat sur la carte ne doit pas croire
+// qu'il n'a jamais existé. Seuls les non-livrables en mode livraison sont
+// vraiment masqués, parce qu'ils ne sont pas physiquement transportables.
 function commandables() {
   return resto.carte
     .map(c => ({
       ...c,
       plats: c.plats.filter(p =>
-        p.disponible && (mode === 'livraison' ? p.livrable : true)),
+        mode === 'livraison' ? p.livrable : true),
     }))
     .filter(c => c.plats.length);
 }
@@ -428,9 +430,9 @@ function rendreCommande() {
         <section class="vcat">
           <h2>${c.nom}</h2>
           ${c.plats.map(p => `
-            <div class="card dish" style="margin-bottom:8px">
+            <div class="card dish ${p.disponible ? '' : 'epuise'}" style="margin-bottom:8px">
               <div class="entete"><div class="info">
-                <div class="name">${p.nom}</div>
+                <div class="name">${p.nom}${p.disponible ? '' : ` <span class="chip payee">${tr().epuise}</span>`}</div>
                 ${p.description ? `<div class="desc">${p.description}</div>` : ''}
               </div></div>
               <div class="variantes">${(p.prix||[]).map(v => {
@@ -439,10 +441,12 @@ function rendreCommande() {
                   ${v.libelle !== 'Standard' ? `<span class="vlbl">${v.libelle}</span>` : ''}
                   <span class="vprix">${fmt.prix(v.montant)}</span>
                   <span class="qty">
-                    ${q > 0 ? `<button data-moins="${v.id}">−</button><span class="n">${q}</span>` : ''}
-                    <button class="plus" data-plus="${v.id}"
-                      data-nom="${p.nom}${v.libelle !== 'Standard' ? ` (${v.libelle})` : ''}"
-                      data-prix="${v.montant}">+</button>
+                    ${p.disponible ? `
+                      ${q > 0 ? `<button data-moins="${v.id}">−</button><span class="n">${q}</span>` : ''}
+                      <button class="plus" data-plus="${v.id}"
+                        data-nom="${p.nom}${v.libelle !== 'Standard' ? ` (${v.libelle})` : ''}"
+                        data-prix="${v.montant}">+</button>
+                    ` : `<span class="epuise-libelle">${tr().epuise}</span>`}
                   </span></div>`;
               }).join('')}</div>
             </div>`).join('')}

@@ -205,9 +205,12 @@ const Store = (() => {
 
     async sessionsDuJour() {
       await init();
+      const debut = new Date();
+      debut.setHours(0, 0, 0, 0);
       const { data, error } = await sb
         .from('sessions')
         .select('*, tables_resto(numero), commandes(*, lignes_commande(*))')
+        .gte('ouverte_le', debut.toISOString())
         .order('ouverte_le', { ascending: false })
         .limit(200);
       if (error) throw error;

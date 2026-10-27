@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Mon suivi du jour</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+  <meta name="theme-color" content="#0f1412">
+  <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+  <link rel="stylesheet" href="css/suivi.css?v=1">
+</head>
+<body>
+
+<header class="app-top">
+  <div class="wrap">
+    <div class="brand">● <b>Suivi</b></div>
+    <div class="date-nav">
+      <button id="jourPrec" aria-label="Jour précédent">‹</button>
+      <span class="lbl" id="dateLbl">Aujourd'hui</span>
+      <button id="jourSuiv" aria-label="Jour suivant">›</button>
+    </div>
+  </div>
+</header>
+
+<main class="app">
+  <div class="wrap">
+
+    <!-- Anneau calorique + macros -->
+    <div class="ring-card">
+      <div class="ring-wrap">
+        <div class="ring">
+          <svg width="136" height="136" viewBox="0 0 136 136">
+            <circle class="ring-bg" cx="68" cy="68" r="60" fill="none" stroke-width="13"></circle>
+            <circle class="ring-fg" id="ringFg" cx="68" cy="68" r="60" fill="none" stroke-width="13"></circle>
+          </svg>
+          <div class="ring-center">
+            <span class="n" id="ringReste">0</span>
+            <span class="u">kcal restantes</span>
+          </div>
+        </div>
+        <div class="ring-side">
+          <div class="line"><span class="k"><i style="background:var(--accent)"></i>Objectif</span><span class="v" id="sObjectif">0</span></div>
+          <div class="line"><span class="k"><i style="background:var(--glucide)"></i>Consommé</span><span class="v" id="sConso">0</span></div>
+          <div class="line"><span class="k"><i style="background:var(--brulee)"></i>Brûlé (sport)</span><span class="v" id="sBrule">0</span></div>
+        </div>
+      </div>
+
+      <div class="macros-bars">
+        <div class="mbar">
+          <div class="head"><span class="n">Protéines <b id="mpVal">0 g</b></span><span class="muted" id="mpCible">/ 0 g</span></div>
+          <div class="track"><div class="fill" id="mpFill" style="background:var(--proteine)"></div></div>
+        </div>
+        <div class="mbar">
+          <div class="head"><span class="n">Glucides <b id="mgVal">0 g</b></span><span class="muted" id="mgCible">/ 0 g</span></div>
+          <div class="track"><div class="fill" id="mgFill" style="background:var(--glucide)"></div></div>
+        </div>
+        <div class="mbar">
+          <div class="head"><span class="n">Lipides <b id="mlVal">0 g</b></span><span class="muted" id="mlCible">/ 0 g</span></div>
+          <div class="track"><div class="fill" id="mlFill" style="background:var(--lipide)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Repas -->
+    <section class="section">
+      <div class="section-head">
+        <h2>🍽️ Repas</h2>
+        <span class="sum" id="repasSum">0 kcal</span>
+      </div>
+      <div class="entry-list" id="listeRepas"></div>
+      <button class="add-btn" data-ouvrir="repas"><span class="plus">＋</span> Ajouter un repas</button>
+    </section>
+
+    <!-- Exercices -->
+    <section class="section">
+      <div class="section-head">
+        <h2>🏃 Exercices</h2>
+        <span class="sum" id="exoSum">0 kcal</span>
+      </div>
+      <div class="entry-list" id="listeExo"></div>
+      <button class="add-btn" data-ouvrir="exercice"><span class="plus">＋</span> Ajouter une séance</button>
+    </section>
+
+  </div>
+</main>
+
+<!-- Barre de navigation basse -->
+<nav class="tabbar">
+  <div class="wrap">
+    <a class="tab on" href="tableau-de-bord.html"><span class="ic">🏠</span>Aujourd'hui</a>
+    <button class="tab tab-fab" data-ouvrir="repas"><span class="ic">＋</span></button>
+    <a class="tab" href="profil.html"><span class="ic">👤</span>Profil</a>
+  </div>
+</nav>
+
+<!-- Modale (feuille du bas) -->
+<div class="sheet-overlay" id="overlay"></div>
+<div class="sheet" id="sheet">
+  <div class="grip"></div>
+
+  <!-- Formulaire repas -->
+  <form id="formRepas" data-form="repas">
+    <h2>Ajouter un repas</h2>
+    <p class="sub">Renseigne les valeurs (sur l'emballage ou à l'estime).</p>
+    <div class="meal-type" data-single="type">
+      <button type="button" data-val="Petit-déj">Matin</button>
+      <button type="button" data-val="Déjeuner">Midi</button>
+      <button type="button" data-val="Dîner">Soir</button>
+      <button type="button" data-val="Collation">Snack</button>
+    </div>
+    <div class="quick" id="quickRepas"></div>
+    <div class="form-field">
+      <label>Nom de l'aliment</label>
+      <input type="text" id="rNom" placeholder="Poulet riz, yaourt…" autocomplete="off">
+    </div>
+    <div class="form-field">
+      <label>Calories</label>
+      <input type="number" id="rKcal" inputmode="numeric" placeholder="450">
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label>Protéines (g)</label><input type="number" id="rProt" inputmode="numeric" placeholder="30"></div>
+      <div class="form-field"><label>Glucides (g)</label><input type="number" id="rGluc" inputmode="numeric" placeholder="50"></div>
+      <div class="form-field"><label>Lipides (g)</label><input type="number" id="rLip" inputmode="numeric" placeholder="12"></div>
+    </div>
+    <button type="submit" class="btn-primaire" style="margin-top:6px">Ajouter au journal</button>
+  </form>
+
+  <!-- Formulaire exercice -->
+  <form id="formExo" data-form="exercice" hidden>
+    <h2>Ajouter une séance</h2>
+    <p class="sub">Les calories brûlées s'ajoutent à ton budget du jour.</p>
+    <div class="quick" id="quickExo"></div>
+    <div class="form-field">
+      <label>Activité</label>
+      <input type="text" id="eNom" placeholder="Course, muscu, vélo…" autocomplete="off">
+    </div>
+    <div class="form-grid" style="grid-template-columns:1fr 1fr">
+      <div class="form-field"><label>Durée (min)</label><input type="number" id="eDuree" inputmode="numeric" placeholder="45"></div>
+      <div class="form-field"><label>Calories brûlées</label><input type="number" id="eKcal" inputmode="numeric" placeholder="350"></div>
+    </div>
+    <button type="submit" class="btn-primaire" style="margin-top:6px">Ajouter la séance</button>
+  </form>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/suivi-store.js?v=1"></script>
+<script src="js/dashboard.js?v=1"></script>
+</body>
+</html>

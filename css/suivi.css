@@ -161,6 +161,20 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border: 4px sol
 .recap-list li span:first-child { color: var(--texte-doux); }
 .recap-list li span:last-child { font-weight: 600; }
 
+/* Écran de construction du plan */
+.build { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; }
+.build-ring { position: relative; width: 120px; height: 120px; }
+.build-ring svg { display: block; }
+.build-ring #buildFg { transition: stroke-dashoffset .12s linear; }
+.build-pct { position: absolute; inset: 0; display: grid; place-items: center; font-size: 26px; font-weight: 800; }
+
+/* Bannière date d'objectif (plan) */
+.goal-banner { display: flex; align-items: center; gap: 12px; margin: 4px 0 16px;
+  background: var(--accent-pale); border: 1px solid rgba(52,211,153,.35); border-radius: var(--r); padding: 14px 16px; }
+.goal-banner .ic { font-size: 24px; }
+.goal-banner .gt { font-weight: 650; font-size: 15px; }
+.goal-banner .gd { font-size: 13px; color: var(--texte-doux); margin-top: 2px; }
+
 /* Barre d'action collante */
 .onb-foot { position: sticky; bottom: 0; padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); background: linear-gradient(rgba(15,20,18,0), var(--fond) 32%); }
 .btn-primaire {

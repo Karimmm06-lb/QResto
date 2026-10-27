@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Bien démarrer — Suivi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+  <meta name="theme-color" content="#0f1412">
+  <meta name="description" content="Configurez votre objectif calorique et vos macros en quelques questions.">
+  <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+  <link rel="stylesheet" href="css/suivi.css?v=2">
+</head>
+<body>
+<div class="onb">
+
+  <!-- Barre de progression -->
+  <header class="onb-top" id="top" hidden>
+    <div class="wrap">
+      <button class="btn-retour" id="btnRetour" aria-label="Retour">←</button>
+      <div class="progress"><i id="barre"></i></div>
+      <span class="progress-lbl" id="pct">0%</span>
+    </div>
+  </header>
+
+  <div class="onb-body">
+    <div class="wrap">
+
+      <!-- 0 · Accueil -->
+      <section class="step on" data-step="accueil">
+        <div class="hero-onb">
+          <div class="logo">● Suivi</div>
+          <div class="mark">🥗</div>
+          <h1>Ton coach nutrition &amp; sport, en poche.</h1>
+          <p class="sub">Réponds à quelques questions. On calcule ton objectif calorique et tes macros, puis tu journalises tes repas et tes séances au quotidien.</p>
+          <div class="feat">
+            <div class="row"><span class="ic">🎯</span><div><div class="t">Objectif personnalisé</div><div class="d">Calories &amp; macros calculées pour ton but</div></div></div>
+            <div class="row"><span class="ic">🍽️</span><div><div class="t">Journal de repas</div><div class="d">Base Lidl, Leclerc, Grand Frais incluse</div></div></div>
+            <div class="row"><span class="ic">🏃</span><div><div class="t">Programme d'exercices</div><div class="d">Maison ou salle, selon ton objectif</div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 1 · Objectif -->
+      <section class="step" data-step="objectif">
+        <p class="eyebrow">Ton objectif</p>
+        <h1>Que veux-tu accomplir ?</h1>
+        <p class="sub">On adapte ton apport calorique en conséquence.</p>
+        <div class="choices" data-single="objectif">
+          <button class="choice" data-val="perte"><span class="ic">📉</span><span class="txt"><span class="t">Perdre du poids</span><span class="d">Déficit calorique maîtrisé</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="maintien"><span class="ic">⚖️</span><span class="txt"><span class="t">Maintenir mon poids</span><span class="d">Rester à l'équilibre</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="prise"><span class="ic">📈</span><span class="txt"><span class="t">Prendre du muscle</span><span class="d">Léger surplus pour construire</span></span><span class="tick"></span></button>
+        </div>
+      </section>
+
+      <!-- 2 · Sexe -->
+      <section class="step" data-step="sexe">
+        <p class="eyebrow">À propos de toi</p>
+        <h1>Tu es…</h1>
+        <p class="sub">Le métabolisme de base diffère selon le sexe biologique.</p>
+        <div class="segmented" data-single="sexe" style="font-size:16px">
+          <button data-val="femme">Femme</button>
+          <button data-val="homme">Homme</button>
+        </div>
+      </section>
+
+      <!-- 3 · Âge -->
+      <section class="step" data-step="age">
+        <p class="eyebrow">À propos de toi</p>
+        <h1>Quel âge as-tu ?</h1>
+        <p class="sub">Pour estimer précisément tes besoins.</p>
+        <div class="field">
+          <div class="input-row"><input type="number" inputmode="numeric" id="age" placeholder="28" min="14" max="100"><span class="unit">ans</span></div>
+        </div>
+      </section>
+
+      <!-- 4 · Taille -->
+      <section class="step" data-step="taille">
+        <p class="eyebrow">À propos de toi</p>
+        <h1>Ta taille</h1>
+        <p class="sub">En centimètres.</p>
+        <div class="field">
+          <div class="input-row"><input type="number" inputmode="numeric" id="taille" placeholder="175" min="120" max="230"><span class="unit">cm</span></div>
+        </div>
+      </section>
+
+      <!-- 5 · Poids -->
+      <section class="step" data-step="poids">
+        <p class="eyebrow">À propos de toi</p>
+        <h1>Ton poids actuel</h1>
+        <p class="sub">En kilogrammes. Il servira de point de départ.</p>
+        <div class="field">
+          <div class="input-row"><input type="number" inputmode="decimal" id="poids" placeholder="72" min="35" max="250" step="0.1"><span class="unit">kg</span></div>
+        </div>
+      </section>
+
+      <!-- 6 · Poids cible -->
+      <section class="step" data-step="poidsCible">
+        <p class="eyebrow">Ta cible</p>
+        <h1 id="cibleTitre">Quel poids veux-tu atteindre ?</h1>
+        <p class="sub">On en déduira une date d'objectif réaliste.</p>
+        <div class="field">
+          <div class="input-row"><input type="number" inputmode="decimal" id="poidsCible" placeholder="68" min="35" max="250" step="0.1"><span class="unit">kg</span></div>
+        </div>
+        <p class="slider-tag" id="cibleEcart" style="text-align:left"></p>
+      </section>
+
+      <!-- 7 · Activité -->
+      <section class="step" data-step="activite">
+        <p class="eyebrow">Mode de vie</p>
+        <h1>Ton niveau d'activité</h1>
+        <p class="sub">En dehors des séances que tu journaliseras.</p>
+        <div class="choices" data-single="activite">
+          <button class="choice" data-val="sedentaire"><span class="ic">🪑</span><span class="txt"><span class="t">Sédentaire</span><span class="d">Travail de bureau, peu de marche</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="leger"><span class="ic">🚶</span><span class="txt"><span class="t">Léger</span><span class="d">Debout / marche régulière</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="modere"><span class="ic">🚴</span><span class="txt"><span class="t">Modéré</span><span class="d">Actif, bouge pas mal dans la journée</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="intense"><span class="ic">🏋️</span><span class="txt"><span class="t">Intense</span><span class="d">Métier physique / très actif</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="athlete"><span class="ic">🔥</span><span class="txt"><span class="t">Athlète</span><span class="d">Entraînement quotidien intense</span></span><span class="tick"></span></button>
+        </div>
+      </section>
+
+      <!-- 8 · Séances / semaine -->
+      <section class="step" data-step="seances">
+        <p class="eyebrow">Entraînement</p>
+        <h1>Combien de séances par semaine ?</h1>
+        <p class="sub">Musculation, course, sport… ce que tu prévois de faire.</p>
+        <div class="choices" data-single="seances">
+          <button class="choice" data-val="0"><span class="ic">🛋️</span><span class="txt"><span class="t">Aucune pour l'instant</span><span class="d">Je commence doucement</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="2"><span class="ic">🟢</span><span class="txt"><span class="t">1 à 2 par semaine</span><span class="d">Occasionnel</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="4"><span class="ic">🔵</span><span class="txt"><span class="t">3 à 4 par semaine</span><span class="d">Régulier</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="6"><span class="ic">🟣</span><span class="txt"><span class="t">5 et plus</span><span class="d">Très assidu</span></span><span class="tick"></span></button>
+        </div>
+      </section>
+
+      <!-- 9 · Régime -->
+      <section class="step" data-step="regime">
+        <p class="eyebrow">Alimentation</p>
+        <h1>Un régime particulier ?</h1>
+        <p class="sub">On en tiendra compte dans les idées de repas.</p>
+        <div class="choices" data-single="regime">
+          <button class="choice" data-val="classique"><span class="ic">🍗</span><span class="txt"><span class="t">Classique</span><span class="d">Je mange de tout</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="pesco"><span class="ic">🐟</span><span class="txt"><span class="t">Pescétarien</span><span class="d">Poisson, pas de viande</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="vege"><span class="ic">🥦</span><span class="txt"><span class="t">Végétarien</span><span class="d">Sans viande ni poisson</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="vegan"><span class="ic">🌱</span><span class="txt"><span class="t">Végan</span><span class="d">100 % végétal</span></span><span class="tick"></span></button>
+        </div>
+      </section>
+
+      <!-- 10 · Expérience -->
+      <section class="step" data-step="experience">
+        <p class="eyebrow">Ton expérience</p>
+        <h1>As-tu déjà compté tes calories ?</h1>
+        <p class="sub">Pour adapter le niveau d'accompagnement.</p>
+        <div class="choices" data-single="experience">
+          <button class="choice" data-val="debutant"><span class="ic">🌱</span><span class="txt"><span class="t">Jamais</span><span class="d">C'est tout nouveau pour moi</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="intermediaire"><span class="ic">📘</span><span class="txt"><span class="t">Un peu</span><span class="d">J'ai déjà essayé</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="avance"><span class="ic">🎓</span><span class="txt"><span class="t">Oui, régulièrement</span><span class="d">Je connais bien les macros</span></span><span class="tick"></span></button>
+        </div>
+      </section>
+
+      <!-- 11 · Obstacles (choix multiple) -->
+      <section class="step" data-step="obstacles">
+        <p class="eyebrow">Tes freins</p>
+        <h1>Qu'est-ce qui t'a bloqué jusqu'ici ?</h1>
+        <p class="sub">Choisis-en autant que tu veux.</p>
+        <div class="choices" data-multi="obstacles">
+          <button class="choice" data-val="constance"><span class="ic">📆</span><span class="txt"><span class="t">Manque de constance</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="temps"><span class="ic">⏰</span><span class="txt"><span class="t">Pas assez de temps</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="fringales"><span class="ic">🍫</span><span class="txt"><span class="t">Fringales / grignotage</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="budget"><span class="ic">💶</span><span class="txt"><span class="t">Budget serré</span></span><span class="tick"></span></button>
+          <button class="choice" data-val="savoir"><span class="ic">❓</span><span class="txt"><span class="t">Je ne savais pas quoi manger</span></span><span class="tick"></span></button>
+        </div>
+      </section>
+
+      <!-- 12 · Rythme -->
+      <section class="step" data-step="rythme">
+        <p class="eyebrow">Ton rythme</p>
+        <h1 id="rythmeTitre">À quelle vitesse ?</h1>
+        <p class="sub" id="rythmeSub">Un rythme modéré est plus durable dans le temps.</p>
+        <div class="slider-wrap">
+          <div class="slider-val"><span id="rythmeVal">0,5</span> <small>kg / semaine</small></div>
+          <div class="slider-tag" id="rythmeTag">Recommandé</div>
+          <input type="range" id="rythme" min="0.1" max="1" step="0.1" value="0.5">
+          <div class="slider-ends"><span>Doux · 0,1</span><span>Agressif · 1,0</span></div>
+        </div>
+      </section>
+
+      <!-- 13 · Construction du plan (animation) -->
+      <section class="step" data-step="construction">
+        <div class="build">
+          <div class="build-ring">
+            <svg width="120" height="120" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="var(--surface-2)" stroke-width="10"></circle>
+              <circle id="buildFg" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" transform="rotate(-90 60 60)"></circle>
+            </svg>
+            <div class="build-pct" id="buildPct">0%</div>
+          </div>
+          <h1 style="text-align:center;margin-top:24px">On construit ton plan…</h1>
+          <p class="sub center" id="buildMsg">Calcul de ton métabolisme…</p>
+        </div>
+      </section>
+
+      <!-- 14 · Récap / Plan -->
+      <section class="step" data-step="plan">
+        <p class="eyebrow">Ton plan est prêt 🎉</p>
+        <h1>Voici tes objectifs quotidiens</h1>
+        <div class="plan-kcal">
+          <div class="big" id="planKcal">0</div>
+          <div class="lbl">kcal par jour</div>
+        </div>
+        <div class="macro-grid">
+          <div class="macro-card"><div class="v" id="planProt">0 g</div><div class="l">Protéines</div><div class="bar" style="background:var(--proteine)"></div></div>
+          <div class="macro-card"><div class="v" id="planGluc">0 g</div><div class="l">Glucides</div><div class="bar" style="background:var(--glucide)"></div></div>
+          <div class="macro-card"><div class="v" id="planLip">0 g</div><div class="l">Lipides</div><div class="bar" style="background:var(--lipide)"></div></div>
+        </div>
+        <div class="goal-banner" id="goalBanner" hidden>
+          <span class="ic">🏁</span>
+          <div><div class="gt" id="goalDate">—</div><div class="gd" id="goalSub"></div></div>
+        </div>
+        <ul class="recap-list">
+          <li><span>Métabolisme de base</span><span id="planBmr">—</span></li>
+          <li><span>Dépense totale (TDEE)</span><span id="planTdee">—</span></li>
+          <li><span>IMC actuel</span><span id="planImc">—</span></li>
+        </ul>
+        <p class="sub center" style="margin-top:14px">Tu pourras ajuster ces valeurs à tout moment.</p>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Pied collant -->
+  <footer class="onb-foot" id="foot">
+    <div class="wrap">
+      <button class="btn-primaire" id="btnSuivant">Commencer</button>
+    </div>
+  </footer>
+
+</div>
+
+<script src="js/suivi-store.js?v=2"></script>
+<script src="js/onboarding.js?v=2"></script>
+</body>
+</html>

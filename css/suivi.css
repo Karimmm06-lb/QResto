@@ -292,6 +292,50 @@ main.app { padding: 18px 0 110px; }
   box-shadow: 0 8px 24px rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: .3s; }
 .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-@media (min-width: 640px) {
-  body { font-size: 16px; }
+/* =============================================================================
+   BUREAU — sur grand écran, l'app reste une colonne « mobile » mais on la
+   présente comme une fenêtre d'application centrée, encadrée, plutôt qu'un
+   ruban étroit flottant dans le vide. Les barres fixes (en-tête, onglets,
+   feuille) sont alignées sur cette colonne.
+   ============================================================================= */
+@media (min-width: 560px) {
+  :root { --col: 460px; }
+
+  body {
+    background:
+      radial-gradient(900px 500px at 50% -10%, rgba(52,211,153,.07), transparent 60%),
+      #0a0e0c;
+    padding: 24px 0;
+  }
+
+  /* Toutes les gouttières internes passent à 100 % de la colonne encadrée. */
+  .wrap { max-width: 100%; }
+
+  /* Onboarding : la colonne entière devient le cadre. */
+  .onb {
+    max-width: var(--col); margin: 0 auto; min-height: calc(100vh - 48px);
+    background: var(--fond); border: 1px solid var(--bord);
+    border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--ombre);
+  }
+
+  /* Tableau de bord : en-tête + contenu + onglets alignés sur la colonne. */
+  .app-top {
+    max-width: var(--col); margin: 0 auto;
+    border: 1px solid var(--bord); border-bottom: none;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+  }
+  main.app {
+    max-width: var(--col); margin: 0 auto; min-height: calc(100vh - 160px);
+    background: var(--fond);
+    border-left: 1px solid var(--bord); border-right: 1px solid var(--bord);
+  }
+  .tabbar {
+    left: 50%; transform: translateX(-50%); width: 100%; max-width: var(--col);
+    border: 1px solid var(--bord);
+    border-radius: 0 0 var(--r-lg) var(--r-lg);
+  }
+
+  /* Feuille d'ajout et toast restent calés sur la largeur de la colonne. */
+  .sheet { max-width: var(--col); }
+  .toast { bottom: 104px; }
 }

@@ -318,24 +318,28 @@ main.app { padding: 18px 0 110px; }
     border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--ombre);
   }
 
-  /* Tableau de bord : en-tête + contenu + onglets alignés sur la colonne. */
+  /* Tableau de bord : en-tête + contenu + onglets forment un cadre continu.
+     La barre d'onglets n'est PLUS fixée au bas de l'écran (où une fenêtre de
+     laptop courte la coupait) : elle vit dans le flux, en bas de la colonne. */
   .app-top {
-    max-width: var(--col); margin: 0 auto;
+    max-width: var(--col); margin: 0 auto; position: static;
     border: 1px solid var(--bord); border-bottom: none;
     border-radius: var(--r-lg) var(--r-lg) 0 0;
   }
   main.app {
-    max-width: var(--col); margin: 0 auto; min-height: calc(100vh - 160px);
+    max-width: var(--col); margin: 0 auto; min-height: 0; padding: 18px 0 18px;
     background: var(--fond);
     border-left: 1px solid var(--bord); border-right: 1px solid var(--bord);
   }
   .tabbar {
-    left: 50%; transform: translateX(-50%); width: 100%; max-width: var(--col);
+    position: static; max-width: var(--col); margin: 0 auto;
+    left: auto; right: auto; width: auto; transform: none;
     border: 1px solid var(--bord);
     border-radius: 0 0 var(--r-lg) var(--r-lg);
   }
+  .tabbar .tab-fab { margin-top: 0; }  /* pas de bouton flottant sur bureau */
 
   /* Feuille d'ajout et toast restent calés sur la largeur de la colonne. */
   .sheet { max-width: var(--col); }
-  .toast { bottom: 104px; }
+  .toast { bottom: 28px; }
 }

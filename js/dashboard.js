@@ -151,6 +151,8 @@
     overlay.classList.remove('on');
     sheet.classList.remove('on');
     formRepas.reset(); formExo.reset();
+    alimentChoisi = null;
+    var fr = $('foodResults'); if (fr) fr.innerHTML = '';
   }
   overlay.addEventListener('click', fermer);
 
@@ -168,15 +170,63 @@
     b.addEventListener('click', function () { typeRepas = b.dataset.val; selectionnerType(); });
   });
 
-  /* --- Suggestions rapides -------------------------------------------------- */
-  var SUGG_REPAS = [
-    { nom: 'Œufs brouillés (2)', kcal: 180, proteines: 13, glucides: 1, lipides: 14 },
-    { nom: 'Banane', kcal: 105, proteines: 1, glucides: 27, lipides: 0 },
-    { nom: 'Blanc de poulet 150 g', kcal: 248, proteines: 46, glucides: 0, lipides: 5 },
-    { nom: 'Riz cuit 200 g', kcal: 260, proteines: 5, glucides: 56, lipides: 1 },
-    { nom: 'Yaourt grec', kcal: 100, proteines: 10, glucides: 6, lipides: 4 },
-    { nom: 'Café au lait', kcal: 60, proteines: 3, glucides: 6, lipides: 3 }
-  ];
+  /* --- Recherche d'aliments (base Lidl / Leclerc / Grand Frais) -------------
+     L'aliment sélectionné garde ses valeurs pour 100 g ; la quantité (en g)
+     recalcule automatiquement calories et macros. */
+  var ALIMENTS = window.ALIMENTS || [];
+  var alimentChoisi = null; // valeurs pour 100 g de l'aliment sélectionné
+
+  function normaliser(s) {
+    return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  }
+  function rechercher(q) {
+    var n = normaliser(q);
+    if (!n) return ALIMENTS.slice(0, 8);
+    return ALIMENTS.filter(function (a) { return normaliser(a.nom).indexOf(n) !== -1 || normaliser(a.cat).indexOf(n) !== -1; }).slice(0, 10);
+  }
+  function rendreResultats(q) {
+    var box = $('foodResults');
+    box.innerHTML = '';
+    rechercher(q).forEach(function (a) {
+      var el = document.createElement('button');
+      el.type = 'button'; el.className = 'food-res';
+      el.innerHTML =
+        '<div class="fr-main"><div class="fr-n"></div><div class="fr-m">' +
+        a.kcal + ' kcal · ' + a.p + 'P ' + a.g + 'G ' + a.l + 'L / 100 g · ' +
+        a.enseignes.join(', ') + '</div></div>' +
+        '<div class="fr-price">~' + a.prixPortion.toFixed(2).replace('.', ',') + ' €<small>' + a.portion + ' g</small></div>';
+      el.querySelector('.fr-n').textContent = a.nom;
+      el.addEventListener('click', function () { choisirAliment(a); });
+      box.appendChild(el);
+    });
+  }
+  function choisirAliment(a) {
+    alimentChoisi = a;
+    $('rNom').value = a.nom;
+    $('rQte').value = a.portion;
+    recalcDepuisQte();
+    $('foodResults').innerHTML = '';
+    $('rSearch').value = '';
+    $('rQte').focus();
+  }
+  function recalcDepuisQte() {
+    if (!alimentChoisi) return;
+    var q = parseFloat($('rQte').value); if (isNaN(q)) return;
+    var f = q / 100;
+    $('rKcal').value = Math.round(alimentChoisi.kcal * f);
+    $('rProt').value = Math.round(alimentChoisi.p * f);
+    $('rGluc').value = Math.round(alimentChoisi.g * f);
+    $('rLip').value  = Math.round(alimentChoisi.l * f);
+  }
+  $('rSearch').addEventListener('input', function () { rendreResultats($('rSearch').value); });
+  $('rSearch').addEventListener('focus', function () { rendreResultats($('rSearch').value); });
+  $('rQte').addEventListener('input', recalcDepuisQte);
+  // Si l'utilisateur modifie un champ à la main, on cesse de recalculer.
+  ['rKcal', 'rProt', 'rGluc', 'rLip'].forEach(function (id) {
+    $(id).addEventListener('input', function () { alimentChoisi = null; });
+  });
+
+  /* --- Suggestions rapides d'exercices -------------------------------------- */
   var SUGG_EXO = [
     { nom: 'Course à pied', duree: 30, kcal: 300 },
     { nom: 'Musculation', duree: 45, kcal: 250 },
@@ -185,15 +235,6 @@
     { nom: 'Natation', duree: 30, kcal: 280 }
   ];
   function remplirQuick() {
-    var qr = $('quickRepas');
-    SUGG_REPAS.forEach(function (s) {
-      var b = document.createElement('button'); b.type = 'button'; b.textContent = s.nom;
-      b.addEventListener('click', function () {
-        $('rNom').value = s.nom; $('rKcal').value = s.kcal;
-        $('rProt').value = s.proteines; $('rGluc').value = s.glucides; $('rLip').value = s.lipides;
-      });
-      qr.appendChild(b);
-    });
     var qe = $('quickExo');
     SUGG_EXO.forEach(function (s) {
       var b = document.createElement('button'); b.type = 'button'; b.textContent = s.nom;

@@ -87,7 +87,8 @@
 <nav class="tabbar">
   <div class="wrap">
     <a class="tab on" href="tableau-de-bord.html"><span class="ic">🏠</span>Aujourd'hui</a>
-    <button class="tab tab-fab" data-ouvrir="repas"><span class="ic">＋</span></button>
+    <a class="tab" href="conseils.html"><span class="ic">🛒</span>Courses</a>
+    <a class="tab" href="exercices.html"><span class="ic">🏋️</span>Exos</a>
     <a class="tab" href="profil.html"><span class="ic">👤</span>Profil</a>
   </div>
 </nav>
@@ -100,21 +101,25 @@
   <!-- Formulaire repas -->
   <form id="formRepas" data-form="repas">
     <h2>Ajouter un repas</h2>
-    <p class="sub">Renseigne les valeurs (sur l'emballage ou à l'estime).</p>
+    <p class="sub">Cherche un aliment (Lidl, Leclerc, Grand Frais) ou saisis à la main.</p>
     <div class="meal-type" data-single="type">
       <button type="button" data-val="Petit-déj">Matin</button>
       <button type="button" data-val="Déjeuner">Midi</button>
       <button type="button" data-val="Dîner">Soir</button>
       <button type="button" data-val="Collation">Snack</button>
     </div>
-    <div class="quick" id="quickRepas"></div>
+    <div class="form-field">
+      <label>🔎 Rechercher un aliment</label>
+      <input type="text" id="rSearch" placeholder="poulet, riz, skyr, banane…" autocomplete="off">
+    </div>
+    <div class="food-results" id="foodResults"></div>
     <div class="form-field">
       <label>Nom de l'aliment</label>
       <input type="text" id="rNom" placeholder="Poulet riz, yaourt…" autocomplete="off">
     </div>
-    <div class="form-field">
-      <label>Calories</label>
-      <input type="number" id="rKcal" inputmode="numeric" placeholder="450">
+    <div class="form-grid" style="grid-template-columns:1fr 1fr">
+      <div class="form-field"><label>Quantité (g)</label><input type="number" id="rQte" inputmode="numeric" placeholder="150"></div>
+      <div class="form-field"><label>Calories</label><input type="number" id="rKcal" inputmode="numeric" placeholder="450"></div>
     </div>
     <div class="form-grid">
       <div class="form-field"><label>Protéines (g)</label><input type="number" id="rProt" inputmode="numeric" placeholder="30"></div>
@@ -144,6 +149,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="js/suivi-store.js?v=1"></script>
+<script src="js/aliments.js?v=1"></script>
 <script src="js/dashboard.js?v=1"></script>
 </body>
 </html>

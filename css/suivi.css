@@ -243,6 +243,20 @@ main.app { padding: 18px 0 110px; }
 
 .empty { text-align: center; color: var(--texte-faible); font-size: 14px; padding: 20px; background: var(--surface); border: 1px dashed var(--bord); border-radius: var(--r); }
 
+/* Cartes de séances (page Exos) */
+.seance { margin-bottom: 14px; }
+.seance-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.seance-t { font-weight: 650; font-size: 16.5px; }
+.seance-tag { font-size: 12.5px; color: var(--accent); font-weight: 600; margin-top: 2px; }
+.seance-kcal { text-align: right; font-weight: 700; font-size: 15px; color: var(--brulee); white-space: nowrap; }
+.seance-kcal small { display: block; font-weight: 500; font-size: 11.5px; color: var(--texte-faible); }
+.seance-exos { list-style: none; padding: 0; margin: 0 0 14px; }
+.seance-exos li { font-size: 14px; color: var(--texte-doux); padding: 5px 0; border-bottom: 1px solid var(--bord); }
+.seance-exos li:last-child { border-bottom: none; }
+.seance .log-btn { padding: 13px; font-size: 15px; }
+/* Le sélecteur de lieu peut dépasser sur petit écran : on autorise le retour. */
+.meal-type button { white-space: nowrap; }
+
 .add-btn { display: flex; align-items: center; gap: 8px; color: var(--accent); font-weight: 600; font-size: 14.5px; padding: 6px 2px; }
 .add-btn .plus { width: 22px; height: 22px; border-radius: 999px; background: var(--accent-pale); display: grid; place-items: center; font-size: 16px; }
 
@@ -273,6 +287,18 @@ main.app { padding: 18px 0 110px; }
 .sheet .grip { width: 40px; height: 4px; border-radius: 999px; background: var(--bord-fort); margin: 6px auto 14px; }
 .sheet h2 { margin-bottom: 4px; }
 .sheet .sub { color: var(--texte-doux); font-size: 14px; margin: 0 0 16px; }
+
+/* Résultats de recherche d'aliments */
+.food-results { display: grid; gap: 6px; margin: -4px 0 16px; max-height: 240px; overflow-y: auto; }
+.food-results:empty { margin: 0; }
+.food-res { display: flex; align-items: center; gap: 10px; text-align: left; width: 100%;
+  padding: 10px 12px; background: var(--surface); border: 1px solid var(--bord); border-radius: var(--r); }
+.food-res:active { border-color: var(--accent); }
+.food-res .fr-main { flex: 1; min-width: 0; }
+.food-res .fr-n { font-weight: 600; font-size: 14.5px; }
+.food-res .fr-m { font-size: 11.5px; color: var(--texte-doux); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.food-res .fr-price { text-align: right; font-weight: 700; font-size: 13px; color: var(--accent); white-space: nowrap; }
+.food-res .fr-price small { display: block; font-weight: 500; font-size: 10.5px; color: var(--texte-faible); }
 
 .quick { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
 .quick button { padding: 9px 13px; border-radius: var(--r-pill); background: var(--surface); border: 1px solid var(--bord); font-size: 13.5px; color: var(--texte-doux); font-weight: 550; }

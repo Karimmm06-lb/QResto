@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Courses & conseils — Suivi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+  <meta name="theme-color" content="#0f1412">
+  <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+  <link rel="stylesheet" href="css/suivi.css?v=1">
+</head>
+<body>
+
+<header class="app-top">
+  <div class="wrap">
+    <div class="brand">● <b>Suivi</b></div>
+    <span class="progress-lbl" id="goalLbl">Petit budget</span>
+  </div>
+</header>
+
+<main class="app">
+  <div class="wrap">
+    <h1 style="margin:14px 0 4px">🛒 Courses malines</h1>
+    <p class="sub" id="intro" style="color:var(--texte-doux);margin-bottom:18px">Manger bien pour pas cher — chez Lidl, Leclerc et Grand Frais.</p>
+
+    <!-- Filtre enseigne -->
+    <div class="meal-type" data-single="enseigne" style="margin-bottom:16px">
+      <button type="button" data-val="Toutes" class="sel">Toutes</button>
+      <button type="button" data-val="Lidl">Lidl</button>
+      <button type="button" data-val="Leclerc">Leclerc</button>
+      <button type="button" data-val="Grand Frais">Grand Frais</button>
+    </div>
+
+    <!-- Meilleur rapport protéines / € -->
+    <section class="section" style="margin-top:4px">
+      <div class="section-head"><h2>💪 Meilleures protéines par euro</h2></div>
+      <p class="sub" style="font-size:13px;margin:-4px 0 10px">Classé par grammes de protéines pour 1 € dépensé.</p>
+      <div class="entry-list" id="topProt"></div>
+    </section>
+
+    <!-- Liste de courses de la semaine -->
+    <section class="section">
+      <div class="section-head"><h2>📝 Ma liste de la semaine</h2><span class="sum" id="panierTotal">—</span></div>
+      <p class="sub" id="panierNote" style="font-size:13px;margin:-4px 0 10px"></p>
+      <div class="entry-list" id="panier"></div>
+    </section>
+
+    <!-- Idées de repas -->
+    <section class="section">
+      <div class="section-head"><h2>🍽️ Idées de repas</h2></div>
+      <p class="sub" id="repasNote" style="font-size:13px;margin:-4px 0 10px"></p>
+      <div class="entry-list" id="idees"></div>
+    </section>
+
+    <p class="sub" style="font-size:12px;color:var(--texte-faible);margin-top:18px">
+      Prix indicatifs (France, ~2025-2026) ; ils varient selon l'enseigne, la région et les promotions.
+    </p>
+  </div>
+</main>
+
+<nav class="tabbar">
+  <div class="wrap">
+    <a class="tab" href="tableau-de-bord.html"><span class="ic">🏠</span>Aujourd'hui</a>
+    <a class="tab on" href="conseils.html"><span class="ic">🛒</span>Courses</a>
+    <a class="tab" href="exercices.html"><span class="ic">🏋️</span>Exos</a>
+    <a class="tab" href="profil.html"><span class="ic">👤</span>Profil</a>
+  </div>
+</nav>
+
+<script src="js/suivi-store.js?v=1"></script>
+<script src="js/aliments.js?v=1"></script>
+<script src="js/conseils.js?v=1"></script>
+</body>
+</html>

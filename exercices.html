@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Exercices — Suivi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+  <meta name="theme-color" content="#0f1412">
+  <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+  <link rel="stylesheet" href="css/suivi.css?v=1">
+</head>
+<body>
+
+<header class="app-top">
+  <div class="wrap">
+    <div class="brand">● <b>Suivi</b></div>
+    <span class="progress-lbl" id="goalLbl">Programme</span>
+  </div>
+</header>
+
+<main class="app">
+  <div class="wrap">
+    <h1 style="margin:14px 0 4px">🏋️ Mes séances</h1>
+    <p class="sub" id="intro" style="color:var(--texte-doux);margin-bottom:16px"></p>
+
+    <!-- Lieu -->
+    <div class="meal-type" data-single="lieu" style="margin-bottom:18px">
+      <button type="button" data-val="maison" class="sel">🏠 Maison</button>
+      <button type="button" data-val="salle">🏋️ Salle</button>
+    </div>
+
+    <div id="seances"></div>
+
+    <p class="sub" style="font-size:12px;color:var(--texte-faible);margin-top:18px">
+      Calories brûlées estimées pour ~70 kg ; elles varient selon l'intensité et le poids. Échauffe-toi avant chaque séance.
+    </p>
+  </div>
+</main>
+
+<nav class="tabbar">
+  <div class="wrap">
+    <a class="tab" href="tableau-de-bord.html"><span class="ic">🏠</span>Aujourd'hui</a>
+    <a class="tab" href="conseils.html"><span class="ic">🛒</span>Courses</a>
+    <a class="tab on" href="exercices.html"><span class="ic">🏋️</span>Exos</a>
+    <a class="tab" href="profil.html"><span class="ic">👤</span>Profil</a>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/suivi-store.js?v=1"></script>
+<script src="js/exercices.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Mon profil — Suivi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+  <meta name="theme-color" content="#0f1412">
+  <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+  <link rel="stylesheet" href="css/suivi.css?v=1">
+</head>
+<body>
+
+<header class="app-top">
+  <div class="wrap">
+    <div class="brand">● <b>Suivi</b></div>
+    <a class="progress-lbl" href="tableau-de-bord.html" style="color:var(--accent);font-weight:600">Fermer</a>
+  </div>
+</header>
+
+<main class="app">
+  <div class="wrap">
+    <h1 style="margin:14px 0 18px">Mon profil</h1>
+
+    <div class="ring-card" style="margin-bottom:18px">
+      <div class="plan-kcal" style="margin:0 0 18px">
+        <div class="big" id="pKcal">0</div>
+        <div class="lbl">kcal / jour — objectif</div>
+      </div>
+      <div class="macro-grid">
+        <div class="macro-card"><div class="v" id="pProt">0 g</div><div class="l">Protéines</div><div class="bar" style="background:var(--proteine)"></div></div>
+        <div class="macro-card"><div class="v" id="pGluc">0 g</div><div class="l">Glucides</div><div class="bar" style="background:var(--glucide)"></div></div>
+        <div class="macro-card"><div class="v" id="pLip">0 g</div><div class="l">Lipides</div><div class="bar" style="background:var(--lipide)"></div></div>
+      </div>
+    </div>
+
+    <h2>Informations</h2>
+    <ul class="recap-list" style="margin-bottom:24px">
+      <li><span>Objectif</span><span id="pObjectif">—</span></li>
+      <li><span>Sexe</span><span id="pSexe">—</span></li>
+      <li><span>Âge</span><span id="pAge">—</span></li>
+      <li><span>Taille</span><span id="pTaille">—</span></li>
+      <li><span>Poids</span><span id="pPoids">—</span></li>
+      <li><span>Niveau d'activité</span><span id="pActivite">—</span></li>
+      <li><span>Métabolisme de base</span><span id="pBmr">—</span></li>
+      <li><span>Dépense totale (TDEE)</span><span id="pTdee">—</span></li>
+      <li><span>IMC</span><span id="pImc">—</span></li>
+    </ul>
+
+    <a class="btn-primaire" href="onboarding.html?refaire=1" style="text-decoration:none;text-align:center;margin-bottom:10px">Recalculer mon plan</a>
+    <button class="btn-ghost" id="reset" style="color:var(--danger)">Effacer toutes mes données</button>
+  </div>
+</main>
+
+<nav class="tabbar">
+  <div class="wrap">
+    <a class="tab" href="tableau-de-bord.html"><span class="ic">🏠</span>Aujourd'hui</a>
+    <a class="tab" href="conseils.html"><span class="ic">🛒</span>Courses</a>
+    <a class="tab" href="exercices.html"><span class="ic">🏋️</span>Exos</a>
+    <a class="tab on" href="profil.html"><span class="ic">👤</span>Profil</a>
+  </div>
+</nav>
+
+<script src="js/suivi-store.js?v=1"></script>
+<script>
+  (function () {
+    if (!Suivi.profilComplet()) { location.replace('onboarding.html'); return; }
+    var p = Suivi.getProfil();
+    var $ = function (id) { return document.getElementById(id); };
+    var OBJ = { perte: 'Perdre du poids', maintien: 'Maintien', prise: 'Prise de muscle' };
+    var ACT = { sedentaire: 'Sédentaire', leger: 'Léger', modere: 'Modéré', intense: 'Intense', athlete: 'Athlète' };
+
+    $('pKcal').textContent = p.cibles.kcal.toLocaleString('fr-FR');
+    $('pProt').textContent = p.cibles.proteines + ' g';
+    $('pGluc').textContent = p.cibles.glucides + ' g';
+    $('pLip').textContent  = p.cibles.lipides + ' g';
+    $('pObjectif').textContent = OBJ[p.objectif] || '—';
+    $('pSexe').textContent = p.sexe === 'homme' ? 'Homme' : 'Femme';
+    $('pAge').textContent = p.age + ' ans';
+    $('pTaille').textContent = p.taille + ' cm';
+    $('pPoids').textContent = p.poids + ' kg';
+    $('pActivite').textContent = ACT[p.activite] || '—';
+    $('pBmr').textContent = p.metabolismeBase.toLocaleString('fr-FR') + ' kcal';
+    $('pTdee').textContent = p.tdee.toLocaleString('fr-FR') + ' kcal';
+    $('pImc').textContent = String(p.imc).replace('.', ',');
+
+    $('reset').addEventListener('click', function () {
+      if (confirm('Effacer le profil et tout le journal ? Cette action est irréversible.')) {
+        Suivi.reset();
+        location.href = 'onboarding.html';
+      }
+    });
+  })();
+</script>
+</body>
+</html>
